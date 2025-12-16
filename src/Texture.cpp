@@ -2,38 +2,46 @@
 #include <stb_image.h>
 #include <iostream>
 
-Texture::Texture(const char* image, GLenum texType, GLenum slot, GLenum format, GLenum pixelType) 
-    : type(texType) {
-    
+Texture::Texture(const char* image, GLenum texType, GLenum slot,
+                 GLenum format, GLenum pixelType)
+{
+    type = texType;
+
     int widthImg, heightImg, numColCh;
-    
-    // Инвертируем координаты Y для загрузки текстур
     stbi_set_flip_vertically_on_load(true);
     unsigned char* bytes = stbi_load(image, &widthImg, &heightImg, &numColCh, 0);
-
     if (!bytes) {
         std::cerr << "Failed to load texture: " << image << std::endl;
+        ID = 0;
+        return;
     }
+
+    // корректируем формат по числу каналов
+    GLenum dataFormat = GL_RGB;
+    if (numColCh == 1)      dataFormat = GL_RED;
+    else if (numColCh == 3) dataFormat = GL_RGB;
+    else if (numColCh == 4) dataFormat = GL_RGBA;
 
     glGenTextures(1, &ID);
     glActiveTexture(slot);
     glBindTexture(texType, ID);
 
-    // Устанавливаем параметры текстуры
-    glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(texType, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(texType, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    // Загружаем изображение в текстуру
-    glTexImage2D(texType, 0, GL_RGBA, widthImg, heightImg, 0, format, pixelType, bytes);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    // Генерируем мипмапы
+    glTexImage2D(texType, 0, dataFormat,
+                 widthImg, heightImg, 0,
+                 dataFormat, pixelType, bytes);
     glGenerateMipmap(texType);
 
-    // Очищаем память
     stbi_image_free(bytes);
+    glBindTexture(texType, 0);
 }
+
 
 void Texture::texUnit(Shader& shader, const char* uniform, GLuint unit) {
     GLuint uniformLoc = glGetUniformLocation(shader.getID(), uniform);

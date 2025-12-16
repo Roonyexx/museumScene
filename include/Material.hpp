@@ -69,4 +69,13 @@ struct Material {
                 glm::vec3(0.03f, 0.03f, 0.03f),     // СЛАБЫЙ specular
                 6.0f};
     }
+
+    static Material iPhoneGlass() {
+        Material mat;
+        mat.ambient   = glm::vec3(0.15f, 0.15f, 0.16f);
+        mat.diffuse   = glm::vec3(0.5f, 0.5f, 0.52f);
+        mat.specular  = glm::vec3(0.4f, 0.4f, 0.45f);   // мягкие блики
+        mat.shininess = 32.0f;                           // менее острые отражения
+        return mat;
+    }
 };

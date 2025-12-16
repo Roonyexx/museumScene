@@ -6,6 +6,8 @@
 #include "Mesh.hpp"
 #include "Material.hpp"
 #include "Light.hpp"
+#include "ModelLoader.hpp"
+
 
 class Scene {
 public:
@@ -37,6 +39,18 @@ public:
         lights.clear();
     }
 
+
+    
+    // Загрузка OBJ модели с текстурой
+    void addOBJModelWithTexture(const std::string& objPath,
+                                const std::string& texturePath,
+                                const glm::mat4& transform,
+                                const Material& material = Material::PlasticWhite(),
+                                const glm::vec3& color = glm::vec3(1.0f)) {
+        Mesh loadedMesh = ModelLoader::loadOBJWithTexture(objPath, texturePath, material);
+        addMesh(loadedMesh, transform, material, color);
+    }
+
     size_t getMeshCount() const { return meshes.size(); }
     size_t getLightCount() const { return lights.size(); }
 
@@ -55,6 +69,73 @@ public:
                                             GL_TEXTURE2, 
                                             GL_RGB, 
                                             GL_UNSIGNED_BYTE);
+
+        
+        // Mesh pickme = ModelLoader::loadOBJ("res/models/pickme.obj", 
+        //                                    Material::Stone());
+        // scene.addMesh(pickme, 
+        //               glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, -5.0f, 0.0f)) *
+        //               glm::scale(glm::mat4(1.0f), glm::vec3(0.03f)) *
+        //               glm::rotate(glm::mat4(1.0f), glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
+        //               Material::Stone(), glm::vec3(0.5f,0.5f,0.5f));
+
+        // колонны в углах
+        Mesh column = ModelLoader::loadOBJ("res/models/Column.obj", 
+                                            Material::Wall());
+        column.addTexture(wallTexture);
+        scene.addMesh(column, 
+                      glm::translate(glm::mat4(1.0f), glm::vec3(-30.0f, -5.0f, -15.0f)) *
+                      glm::scale(glm::mat4(1.0f), glm::vec3(0.04f)),
+                      Material::Marble(), glm::vec3(0.8f,0.8f,0.8f));
+
+        scene.addMesh(column, 
+                glm::translate(glm::mat4(1.0f), glm::vec3(30.0f, -5.0f, -15.0f)) *
+                glm::scale(glm::mat4(1.0f), glm::vec3(0.04f)),
+                Material::Marble(), glm::vec3(0.8f,0.8f,0.8f));
+
+        scene.addMesh(column, 
+                      glm::translate(glm::mat4(1.0f), glm::vec3(30.0f, -5.0f, 15.0f)) *
+                      glm::scale(glm::mat4(1.0f), glm::vec3(0.04f)),
+                      Material::Marble(), glm::vec3(0.8f,0.8f,0.8f));
+
+        scene.addMesh(column, 
+                      glm::translate(glm::mat4(1.0f), glm::vec3(-30.0f, -5.0f, 15.0f)) *
+                      glm::scale(glm::mat4(1.0f), glm::vec3(0.04f)) *
+                      glm::rotate(glm::mat4(1.0f), glm::radians(12.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
+                      Material::Marble(), glm::vec3(0.8f,0.8f,0.8f));
+
+
+        Mesh phone = ModelLoader::loadOBJWithTexture("res/models/iphone.obj", 
+                                                     "res/textures/iphone.png",
+                                                     Material::Marble());
+
+
+        scene.addMesh(phone, glm::translate(glm::mat4(1.0f), glm::vec3(-23.0f, -4.99f, -8.0f)) *
+                             glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f,0.0f,0.0f)) *
+                             glm::rotate(glm::mat4(1.0f), glm::radians(145.0f), glm::vec3(0.0f,0.0f,1.0f)) *
+                                 glm::scale(glm::mat4(1.0f), glm::vec3(0.08f)),
+                             Material::iPhoneGlass(), glm::vec3(0.5f,0.5f,0.5f));
+
+        glm::mat4 phoneTransform = 
+            glm::translate(glm::mat4(1.0f), glm::vec3(-23.0f, -4.99f, -8.0f));
+
+        // Локальная позиция вспышки на модели (примерно, зависит от твоей модели)
+        // Обычно вспышка на расстоянии ~3-4 единицы от центра модели по локальной оси Y/Z
+        glm::vec4 flashLocalPos = glm::vec4(1.05f, 0.07f, 1.61f, 1.0f);
+
+        // Трансформируем в мировые координаты
+        glm::vec4 flashWorldPos = phoneTransform * flashLocalPos;
+
+        // Добавляем источник света
+        scene.addLight(Light(
+            glm::vec3(flashWorldPos),           // позиция вспышки
+            glm::vec3(1.0f, 0.95f, 0.9f),      // холодный белый свет (как у LED-вспышки)
+            4.0f,                              // высокая интенсивность
+            15.0f                                // радиус освещения ~8 метров
+        ));
+
+
+                
 
         // === СТЕНЫ И ПОЛ ===
         
@@ -110,6 +191,250 @@ public:
                      glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
                      Material::Wall(), glm::vec3(0.75f, 0.75f, 0.75f));
 
+        // Mesh picture1({}, {}, Material::Marble());
+        // Mesh frame1 = Mesh::CreatePictureFrame(
+        //     4.0f, 3.0f,
+        //     0.2f,
+        //     Material::Marble(),
+        //     Material::Marble(),
+        //     picture1
+        // );
+        // scene.addMesh(frame1,
+        //              glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 5.0f, -14.0f)),
+        //              Material::Marble(), glm::vec3(1.0f, 1.0f, 1.0f));
+        // scene.addMesh(picture1,
+        //              glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 5.0f, -14.01f)),
+        //              Material::Marble(), glm::vec3(1.0f, 1.0f, 1.0f));
+
+        glm::mat4 base = glm::translate(glm::mat4(1.0f), glm::vec3(-15.0f, 7.0f, -14.79f)) * 
+                                        glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f)); // чуть перед стеной
+
+        PictureFrameMeshes frame = Mesh::CreateVolumePictureFrame(
+            4.0f, 3.0f,      // ширина и высота рамки
+            0.3f,            // толщина рамки внутрь
+            0.4f,            // глубина рамки
+            Material::Marble(),        // материал рамки
+            Material::PlasticWhite()   // материал картины
+        );
+        Mesh picturePlane = *frame.picturePlane;
+        picturePlane.addTexture(new Texture(
+            "res/textures/sadcat.jpg",
+            GL_TEXTURE_2D,
+            GL_TEXTURE2,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE
+        ));
+
+    // сама картина (плоскость с текстурой)
+        scene.addMesh(
+            picturePlane,
+            base,
+            Material::PlasticWhite(),
+            glm::vec3(1.0f, 1.0f, 1.0f)
+        ); // [file:27][file:32]
+
+        // нижняя планка рамки
+        scene.addMesh(
+            *frame.bottomBar,
+            base *
+            glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -1.3f, -0.1f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(1.95f, 0.15f, 0.1f)),
+            Material::Marble(),
+            glm::vec3(1.0f, 1.0f, 1.0f)
+        );
+
+        // верхняя планка
+        scene.addMesh(
+            *frame.topBar,
+            base *
+            glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.3f, -0.1f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(1.95f, 0.15f, 0.1f)),
+            Material::Marble(),
+            glm::vec3(1.0f, 1.0f, 1.0f)
+        );
+
+        // левая планка
+        scene.addMesh(
+            *frame.leftBar,
+            base *
+            glm::translate(glm::mat4(1.0f), glm::vec3(-1.8f, 0.0f, -0.1f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(0.15f, 1.4f, 0.1f)),
+            Material::Marble(),
+            glm::vec3(1.0f, 1.0f, 1.0f)
+        );
+
+        // правая планка
+        scene.addMesh(
+            *frame.rightBar,
+            base *
+            glm::translate(glm::mat4(1.0f), glm::vec3(1.8f, 0.0f, -0.1f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(0.15f, 1.4f, 0.1f)),
+            Material::Marble(),
+            glm::vec3(1.0f, 1.0f, 1.0f)
+        );
+
+        glm::mat4 baseCenter =
+            glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 4.0f, -14.79f)) *
+            glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
+
+        PictureFrameMeshes frameCenter = Mesh::CreateVolumePictureFrame(
+            4.0f, 3.0f, 0.3f, 0.4f,
+            Material::Marble(), Material::PlasticWhite()
+        );
+
+        Mesh pictureCenter = *frameCenter.picturePlane;
+        pictureCenter.addTexture(new Texture("res/textures/lisa.png",
+                                            GL_TEXTURE_2D, GL_TEXTURE2,
+                                            GL_RGBA, GL_UNSIGNED_BYTE));
+
+        scene.addMesh(pictureCenter, baseCenter,
+                    Material::Wall(), glm::vec3(1.0f));
+
+        scene.addMesh(*frameCenter.bottomBar,
+                    baseCenter *
+                    glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -1.3f, -0.1f)) *
+                    glm::scale(glm::mat4(1.0f), glm::vec3(1.95f, 0.15f, 0.1f)),
+                    Material::Marble(), glm::vec3(1.0f));
+        scene.addMesh(
+            *frame.topBar,
+            baseCenter *
+            glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.3f, -0.1f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(1.95f, 0.15f, 0.1f)),
+            Material::Marble(),
+            glm::vec3(1.0f, 1.0f, 1.0f)
+        );
+
+        // левая планка
+        scene.addMesh(
+            *frame.leftBar,
+            baseCenter *
+            glm::translate(glm::mat4(1.0f), glm::vec3(-1.8f, 0.0f, -0.1f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(0.15f, 1.4f, 0.1f)),
+            Material::Marble(),
+            glm::vec3(1.0f, 1.0f, 1.0f)
+        );
+
+        // правая планка
+        scene.addMesh(
+            *frame.rightBar,
+            baseCenter *
+            glm::translate(glm::mat4(1.0f), glm::vec3(1.8f, 0.0f, -0.1f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(0.15f, 1.4f, 0.1f)),
+            Material::Marble(),
+            glm::vec3(1.0f, 1.0f, 1.0f)
+        );
+
+
+        /* 3) ПРАВАЯ ГОРИЗОНТАЛЬНАЯ */
+
+        glm::mat4 baseRight =
+            glm::translate(glm::mat4(1.0f), glm::vec3(15.0f, 1.5f, -14.79f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
+
+        PictureFrameMeshes frameRight = Mesh::CreateVolumePictureFrame(
+            4.0f, 3.0f, 0.3f, 0.4f,
+            Material::Marble(), Material::PlasticWhite()
+        );
+
+        Mesh pictureRight = *frameRight.picturePlane;
+        pictureRight.addTexture(new Texture("res/textures/sadcat.jpg",
+                                            GL_TEXTURE_2D, GL_TEXTURE2,
+                                            GL_RGBA, GL_UNSIGNED_BYTE));
+
+        scene.addMesh(pictureRight, baseRight,
+                    Material::PlasticWhite(), glm::vec3(1.0f));
+
+        scene.addMesh(*frameRight.bottomBar,
+                    baseRight *
+                    glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -1.3f, -0.1f)) *
+                    glm::scale(glm::mat4(1.0f), glm::vec3(1.95f, 0.15f, 0.1f)),
+                    Material::Marble(), glm::vec3(1.0f));
+
+        scene.addMesh(
+            *frameRight.topBar,
+            baseRight *
+            glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.3f, -0.1f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(1.95f, 0.15f, 0.1f)),
+            Material::Marble(),
+            glm::vec3(1.0f, 1.0f, 1.0f)
+        );
+
+        // левая планка
+        scene.addMesh(
+            *frameRight.leftBar,
+            baseRight *
+            glm::translate(glm::mat4(1.0f), glm::vec3(-1.8f, 0.0f, -0.1f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(0.15f, 1.4f, 0.1f)),
+            Material::Marble(),
+            glm::vec3(1.0f, 1.0f, 1.0f)
+        );
+
+        // правая планка
+        scene.addMesh(
+            *frameRight.rightBar,
+            baseRight *
+            glm::translate(glm::mat4(1.0f), glm::vec3(1.8f, 0.0f, -0.1f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(0.15f, 1.4f, 0.1f)),
+            Material::Marble(),
+            glm::vec3(1.0f, 1.0f, 1.0f)
+        );
+
+        Mesh cube = Mesh::CreateCube(Material::PlasticWhite());
+        scene.addMesh(cube,
+                      glm::translate(glm::mat4(1.0f), glm::vec3(-21.0f, -3.0f, -10.0f)) *
+                      glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 2.0f)),
+                      Material::MetalGold()), glm::vec3(0.1f, 0.2f, 0.2f);
+        
+
+        Mesh sphere = Mesh::CreateSphere(1.5f, 32, 16, Material::Stone());
+        scene.addMesh(sphere,
+                glm::translate(glm::mat4(1.0f), glm::vec3(-16.0f, -3.5f, -10.0f)),
+                Material::Marble()), glm::vec3(0.1f, 0.2f, 0.2f);
+
+
+
+
+        // === ПЛИНТУСЫ (белый мрамор) ===
+        Material plinthMat = Material::Marble();
+        glm::vec3 plinthColor(0.95f, 0.95f, 0.95f);
+
+        // Передняя стена: по низу, вдоль X, у Z = -15
+        Mesh frontPlinth = Mesh::CreateCube(plinthMat);
+        scene.addMesh(
+            frontPlinth,
+            glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -4.5f, -15.5f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(60.0f, 0.5f, 0.6f)),
+            plinthMat, plinthColor
+        );
+
+        // Задняя стена: по низу, вдоль X, у Z = 15
+        Mesh backPlinth = Mesh::CreateCube(plinthMat);
+        scene.addMesh(
+            backPlinth,
+            glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -4.5f, 15.5f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(60.0f, 0.5f, 0.6f)),
+            plinthMat, plinthColor
+        );
+
+        // Левая стена: по низу, вдоль Z, у X = -30
+        Mesh leftPlinth = Mesh::CreateCube(plinthMat);
+        scene.addMesh(
+            leftPlinth,
+            glm::translate(glm::mat4(1.0f), glm::vec3(-30.5f, -4.5f, 0.0f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(0.6f, 0.5f, 30.0f)),
+            plinthMat, plinthColor
+        );
+
+        // Правая стена: по низу, вдоль Z, у X = 30
+        Mesh rightPlinth = Mesh::CreateCube(plinthMat);
+        scene.addMesh(
+            rightPlinth,
+            glm::translate(glm::mat4(1.0f), glm::vec3(30.5f, -4.5f, 0.0f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(0.6f, 0.5f, 30.0f)),
+            plinthMat, plinthColor
+        );
+
         
         // Центральная светящаяся панель (единственный видимый источник)
         Mesh lightPanel2 = Mesh::CreatePlane(3.0f, 3.0f, Material::MetalGold());
@@ -119,45 +444,45 @@ public:
 
         // === ЭКСПОНАТЫ (на подиумах) ===
         
-        // Подиум 1
-        Mesh podium1 = Mesh::CreateCube();
-        scene.addMesh(podium1, 
-                     glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, -4.2f, -3.0f)) *
-                     glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f)),
-                     Material::Stone(), glm::vec3(0.5f, 0.5f, 0.5f));
+        // // Подиум 1
+        // Mesh podium1 = Mesh::CreateCube();
+        // scene.addMesh(podium1, 
+        //              glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, -4.2f, -3.0f)) *
+        //              glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f)),
+        //              Material::Stone(), glm::vec3(0.5f, 0.5f, 0.5f));
 
-        // Золотая сфера на подиуме 1
-        Mesh goldenSphere = Mesh::CreateSphere(0.8f, 32, 16, Material::MetalGold());
-        scene.addMesh(goldenSphere, 
-                     glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, -1.5f, -3.0f)),
-                     Material::MetalGold(), glm::vec3(1.0f, 0.84f, 0.0f));
+        // // Золотая сфера на подиуме 1
+        // Mesh goldenSphere = Mesh::CreateSphere(0.8f, 32, 16, Material::MetalGold());
+        // scene.addMesh(goldenSphere, 
+        //              glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, -1.5f, -3.0f)),
+        //              Material::MetalGold(), glm::vec3(1.0f, 0.84f, 0.0f));
 
-        // Подиум 2
-        Mesh podium2 = Mesh::CreateCube();
-        scene.addMesh(podium2, 
-                     glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -3.0f, 5.0f)) *
-                     glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 0.5f, 1.0f)),
-                     Material::Stone(), glm::vec3(0.5f, 0.5f, 0.5f));
+        // // Подиум 2
+        // Mesh podium2 = Mesh::CreateCube();
+        // scene.addMesh(podium2, 
+        //              glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -3.0f, 5.0f)) *
+        //              glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 0.5f, 1.0f)),
+        //              Material::Stone(), glm::vec3(0.5f, 0.5f, 0.5f));
 
-        // Мраморный куб на подиуме 2
-        Mesh marbleBlock = Mesh::CreateCube();
-        scene.addMesh(marbleBlock, 
-                     glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -1.0f, 5.0f)) *
-                     glm::scale(glm::mat4(1.0f), glm::vec3(0.7f, 0.7f, 0.7f)),
-                     Material::Marble(), glm::vec3(0.95f, 0.95f, 0.95f));
+        // // Мраморный куб на подиуме 2
+        // Mesh marbleBlock = Mesh::CreateCube();
+        // scene.addMesh(marbleBlock, 
+        //              glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -1.0f, 5.0f)) *
+        //              glm::scale(glm::mat4(1.0f), glm::vec3(0.7f, 0.7f, 0.7f)),
+        //              Material::Marble(), glm::vec3(0.95f, 0.95f, 0.95f));
 
-        // Подиум 3
-        Mesh podium3 = Mesh::CreateCube();
-        scene.addMesh(podium3, 
-                     glm::translate(glm::mat4(1.0f), glm::vec3(5.0f, -3.0f, -3.0f)) *
-                     glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 0.5f, 1.0f)),
-                     Material::Stone(), glm::vec3(0.5f, 0.5f, 0.5f));
+        // // Подиум 3
+        // Mesh podium3 = Mesh::CreateCube();
+        // scene.addMesh(podium3, 
+        //              glm::translate(glm::mat4(1.0f), glm::vec3(5.0f, -3.0f, -3.0f)) *
+        //              glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 0.5f, 1.0f)),
+        //              Material::Stone(), glm::vec3(0.5f, 0.5f, 0.5f));
 
-        // Красная сфера на подиуме 3
-        Mesh redSphere = Mesh::CreateSphere(0.8f, 32, 16, Material::PlasticRed());
-        scene.addMesh(redSphere, 
-                     glm::translate(glm::mat4(1.0f), glm::vec3(5.0f, -1.5f, -3.0f)),
-                     Material::PlasticRed(), glm::vec3(1.0f, 0.2f, 0.2f));
+        // // Красная сфера на подиуме 3
+        // Mesh redSphere = Mesh::CreateSphere(0.8f, 32, 16, Material::PlasticRed());
+        // scene.addMesh(redSphere, 
+        //              glm::translate(glm::mat4(1.0f), glm::vec3(5.0f, -1.5f, -3.0f)),
+        //              Material::PlasticRed(), glm::vec3(1.0f, 0.2f, 0.2f));
 
         // === ИСТОЧНИКИ СВЕТА ===
         
@@ -166,8 +491,8 @@ public:
         scene.addLight(Light(glm::vec3(0.0f, 14.0f, 0.0f),
                       glm::vec3(1.0f, 0.98f, 0.9f), 8.0f, 40.0f));
 
-        scene.addLight(Light(glm::vec3(-5.0f, 14.0f, 0.0f),
-                      glm::vec3(1.0f, 0.98f, 0.9f), 8.0f, 40.0f));
+        // scene.addLight(Light(glm::vec3(-5.0f, 14.0f, 0.0f),
+        //               glm::vec3(1.0f, 0.98f, 0.9f), 8.0f, 40.0f));
 
         return scene;
     }

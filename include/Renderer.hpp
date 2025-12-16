@@ -1,7 +1,7 @@
 #pragma once
 
-#include <glm/glm.hpp>
 #include <vector>
+#include <array>
 #include "Mesh.hpp"
 #include "Material.hpp"
 #include "Light.hpp"
@@ -16,25 +16,36 @@ private:
     std::vector<Material> materials;
     std::vector<glm::vec3> colors;
     std::vector<Light> lights;
+
     Shader& shader;
     Shader* shadowShader;
     ShadowMap* shadowMap;
     Shader* pointShadowShader = nullptr;
-    ShadowCube* shadowCube = nullptr;
+    
+    // Массив cubemap для точечных источников света
+    static const int MAX_POINT_SHADOWS = 5;
+    std::array<ShadowCube*, MAX_POINT_SHADOWS> shadowCubes;
+    int numActiveShadowCubes = 0;
+
     int screenWidth;
     int screenHeight;
 
 public:
     Renderer(Shader& s)
         : shader(s), shadowShader(nullptr), shadowMap(nullptr),
-          screenWidth(1920), screenHeight(1080) {}
+          screenWidth(1920), screenHeight(1080) {
+        // Инициализируем массив нулями
+        shadowCubes.fill(nullptr);
+    }
 
     ~Renderer() {
         if (shadowMap != nullptr) {
             delete shadowMap;
         }
-        if (shadowCube != nullptr) {
-            delete shadowCube;
+        for (int i = 0; i < MAX_POINT_SHADOWS; ++i) {
+            if (shadowCubes[i] != nullptr) {
+                delete shadowCubes[i];
+            }
         }
     }
 
@@ -50,8 +61,18 @@ public:
 
     void initPointShadow(Shader& pointS, int size = 1024, float far_plane = 50.0f) {
         pointShadowShader = &pointS;
-        if (shadowCube != nullptr) delete shadowCube;
-        shadowCube = new ShadowCube(size, far_plane);
+        
+        // Создаем 5 cubemap для точечных источников
+        for (int i = 0; i < MAX_POINT_SHADOWS; ++i) {
+            if (shadowCubes[i] != nullptr) {
+                delete shadowCubes[i];
+            }
+            shadowCubes[i] = new ShadowCube(size, far_plane);
+        }
+        
+        std::cout << "Initialized " << MAX_POINT_SHADOWS 
+                  << " point shadow cubemaps (" << size << "x" << size 
+                  << ", far plane: " << far_plane << ")\n";
     }
 
     void addObject(Mesh* mesh, const glm::mat4& transform,
@@ -83,12 +104,13 @@ public:
             return;
         }
 
-        renderShadowMap();
+        renderShadowMaps();
         renderWithShadows();
     }
 
 private:
-    void renderShadowMap() {
+    void renderShadowMaps() {
+        // 1. Рендерим directional shadow map
         shadowShader->activate();
         shadowMap->bindForRendering();
         glEnable(GL_CULL_FACE);
@@ -106,56 +128,69 @@ private:
         glm::vec3 sceneCenter = glm::vec3(0.0f, 2.0f, 0.0f);
         float sceneRadius = 25.0f;
         glm::vec3 lightPos = sceneCenter - glm::normalize(lightDir) * sceneRadius;
+
         glm::mat4 lightView = glm::lookAt(lightPos, sceneCenter, glm::vec3(0, 1, 0));
         glm::mat4 lightProjection = glm::ortho(-sceneRadius, sceneRadius,
                                               -sceneRadius, sceneRadius,
                                               0.1f, 100.0f);
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
         shadowShader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
 
         for (size_t i = 0; i < meshes.size(); ++i) {
             shadowShader->setMat4("model", transforms[i]);
             meshes[i]->draw();
         }
+
         glCullFace(GL_BACK);
         glDisable(GL_CULL_FACE);
-
         shadowMap->unbindForRendering();
         glViewport(0, 0, screenWidth, screenHeight);
 
-        // Point light shadow (depth cubemap) - если есть pointShadowShader и точечный источник
-        if (pointShadowShader != nullptr && shadowCube != nullptr) {
-            // найдем первый точечный свет
-            bool found = false;
-            glm::vec3 lightPos(0.0f);
+        // 2. Рендерим point shadow cubemaps для всех точечных источников
+        if (pointShadowShader != nullptr && shadowCubes[0] != nullptr) {
+            // Собираем все точечные источники света
+            std::vector<glm::vec3> pointLightPositions;
             for (const auto& l : lights) {
-                if (l.type == LightType::POINT) { found = true; lightPos = l.position; break; }
+                if (l.type == LightType::POINT) {
+                    pointLightPositions.push_back(l.position);
+                    if (pointLightPositions.size() >= MAX_POINT_SHADOWS) {
+                        break; // Максимум 5 точечных источников
+                    }
+                }
             }
 
-            if (found) {
+            numActiveShadowCubes = pointLightPositions.size();
+
+            // Рендерим cubemap для каждого точечного источника
+            for (size_t lightIdx = 0; lightIdx < pointLightPositions.size(); ++lightIdx) {
+                glm::vec3 lightPos = pointLightPositions[lightIdx];
+                ShadowCube* cube = shadowCubes[lightIdx];
+
                 pointShadowShader->activate();
-                shadowCube->bindForWriting();
+                cube->bindForWriting();
                 glEnable(GL_CULL_FACE);
                 glCullFace(GL_FRONT);
-                glClear(GL_DEPTH_BUFFER_BIT);
 
                 float near = 0.1f;
-                float far_plane = shadowCube->getFarPlane();
+                float far_plane = cube->getFarPlane();
                 glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), 1.0f, near, far_plane);
-                std::vector<glm::mat4> shadowTransforms;
-                shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-                shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-                shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-                shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
-                shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-                shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
 
-                for (unsigned int i = 0; i < 6; ++i) {
-                    // Прикрепляем грань и чистим её глубину
-                    shadowCube->attachFace(i);
+                // Создаем 6 матриц для всех граней куба
+                std::vector<glm::mat4> shadowTransforms;
+                shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3( 1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+                shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+                shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3( 0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+                shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3( 0.0,-1.0, 0.0), glm::vec3(0.0, 0.0,-1.0)));
+                shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3( 0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+                shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3( 0.0, 0.0,-1.0), glm::vec3(0.0, -1.0, 0.0)));
+
+                // Рендерим во все 6 граней
+                for (unsigned int faceIdx = 0; faceIdx < 6; ++faceIdx) {
+                    cube->attachFace(faceIdx);
                     glClear(GL_DEPTH_BUFFER_BIT);
 
-                    pointShadowShader->setMat4("lightSpaceMatrix", shadowTransforms[i]);
+                    pointShadowShader->setMat4("lightSpaceMatrix", shadowTransforms[faceIdx]);
                     pointShadowShader->setVec3("lightPos", lightPos);
                     pointShadowShader->setFloat("far_plane", far_plane);
 
@@ -165,17 +200,19 @@ private:
                     }
                 }
 
-                glCullFace(GL_BACK);
-                glDisable(GL_CULL_FACE);
-                shadowCube->unbind();
-                glViewport(0, 0, screenWidth, screenHeight);
+                cube->unbind();
             }
+
+            glCullFace(GL_BACK);
+            glDisable(GL_CULL_FACE);
+            glViewport(0, 0, screenWidth, screenHeight);
         }
     }
 
     void renderWithShadows() {
         shader.activate();
 
+        // Directional shadow map
         glm::vec3 lightDir = glm::vec3(0.3f, -1.0f, 0.3f);
         for (const auto& light : lights) {
             if (light.type == LightType::DIRECTIONAL) {
@@ -187,24 +224,33 @@ private:
         glm::vec3 sceneCenter = glm::vec3(0.0f, 2.0f, 0.0f);
         float sceneRadius = 25.0f;
         glm::vec3 lightPos = sceneCenter - glm::normalize(lightDir) * sceneRadius;
+
         glm::mat4 lightView = glm::lookAt(lightPos, sceneCenter, glm::vec3(0, 1, 0));
         glm::mat4 lightProjection = glm::ortho(-sceneRadius, sceneRadius,
                                               -sceneRadius, sceneRadius,
                                               0.1f, 100.0f);
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
         shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 
+        // Привязываем directional shadow map
         glActiveTexture(GL_TEXTURE0);
         shadowMap->bindTexture(0);
         shader.setInt("shadowMap", 0);
 
-        if (shadowCube != nullptr) {
-            glActiveTexture(GL_TEXTURE1);
-            shadowCube->bindTexture(1);
-            shader.setInt("pointShadowMap", 1);
-            shader.setFloat("far_plane", shadowCube->getFarPlane());
+        // Привязываем point shadow cubemaps (текстурные слоты 1-5)
+        for (int i = 0; i < numActiveShadowCubes && i < MAX_POINT_SHADOWS; ++i) {
+            glActiveTexture(GL_TEXTURE1 + i);
+            shadowCubes[i]->bindTexture(1 + i);
+            
+            std::string uniformName = "pointShadowMaps[" + std::to_string(i) + "]";
+            shader.setInt(uniformName, 1 + i);
         }
+        
+        shader.setInt("numPointShadows", numActiveShadowCubes);
+        shader.setFloat("far_plane", shadowCubes[0] != nullptr ? shadowCubes[0]->getFarPlane() : 50.0f);
 
+        // Передаем источники света
         shader.setInt("numLights", static_cast<int>(lights.size()));
         for (size_t i = 0; i < lights.size() && i < 8; ++i) {
             std::string prefix = "lights[" + std::to_string(i) + "]";
@@ -218,6 +264,7 @@ private:
             shader.setFloat(prefix + ".outerCutOff", glm::cos(glm::radians(lights[i].outerCutOff)));
         }
 
+        // Рендерим все объекты
         for (size_t i = 0; i < meshes.size(); ++i) {
             shader.setMat4("model", transforms[i]);
             shader.setVec3("matAmbient", materials[i].ambient);
@@ -225,13 +272,13 @@ private:
             shader.setVec3("matSpecular", materials[i].specular);
             shader.setFloat("matShininess", materials[i].shininess);
             shader.setVec3("objectColor", colors[i]);
+
             if (meshes[i]->texture != nullptr) {
-                glActiveTexture(GL_TEXTURE2); 
+                glActiveTexture(GL_TEXTURE6); // Используем слот 6 для диффузной текстуры
                 meshes[i]->texture->Bind();
-                shader.setInt("diffuseTexture", 2);
+                shader.setInt("diffuseTexture", 6);
                 shader.setBool("useTexture", true);
-            } 
-            else {
+            } else {
                 shader.setBool("useTexture", false);
             }
 
@@ -242,6 +289,7 @@ private:
     void renderDirect() {
         shader.activate();
         shader.setInt("numLights", static_cast<int>(lights.size()));
+        
         for (size_t i = 0; i < lights.size() && i < 8; ++i) {
             std::string prefix = "lights[" + std::to_string(i) + "]";
             shader.setInt(prefix + ".type", static_cast<int>(lights[i].type));

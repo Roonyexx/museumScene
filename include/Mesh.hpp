@@ -10,20 +10,39 @@
 #include "Material.hpp"
 #include "Texture.hpp"
 
+// Вперёд объявляем Mesh, чтобы использовать его в PictureFrameMeshes
+class Mesh;
+
+// Полное определение структуры рамки
+struct PictureFrameMeshes {
+    Mesh* picturePlane = nullptr;
+    Mesh* bottomBar    = nullptr;
+    Mesh* topBar       = nullptr;
+    Mesh* leftBar      = nullptr;
+    Mesh* rightBar     = nullptr;
+
+    PictureFrameMeshes() = default;
+};
+
 class Mesh {
 public:
-    std::vector<Vertex> vertices;
+    std::vector<Vertex>   vertices;
     std::vector<uint32_t> indices;
-    Material material;
-    
-    GLuint VAO_id;
-    GLuint VBO_id;
-    GLuint EBO_id;
+    Material              material;
+
+    GLuint   VAO_id = 0;
+    GLuint   VBO_id = 0;
+    GLuint   EBO_id = 0;
     Texture* texture = nullptr;
 
-    Mesh(const std::vector<Vertex>& verts, const std::vector<uint32_t>& inds, 
-         const Material& mat = Material::PlasticWhite(), Texture* tex = nullptr)
-        : vertices(verts), indices(inds), material(mat), texture(tex) {
+    Mesh() = default;
+
+    Mesh(const std::vector<Vertex>& verts,
+         const std::vector<uint32_t>& inds,
+         const Material& mat = Material::PlasticWhite(),
+         Texture* tex = nullptr)
+        : vertices(verts), indices(inds), material(mat), texture(tex)
+    {
         setupMesh();
     }
 
@@ -38,11 +57,8 @@ public:
         VBO vbo(vertices.data(), vertices.size() * sizeof(Vertex));
         EBO ebo(indices.data(), indices.size() * sizeof(uint32_t));
 
-        // Позиция
         vao.linkAttrib(vbo, 0, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, position));
-        // Нормаль
         vao.linkAttrib(vbo, 1, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-        // Координаты текстуры
         vao.linkAttrib(vbo, 2, 2, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
 
         VAO_id = vao.id;
@@ -66,7 +82,7 @@ public:
         glDeleteVertexArrays(1, &VAO_id);
     }
 
-    // Примитивы
+    // ===== Примитивы =====
     static Mesh CreateCube(const Material& mat = Material::PlasticWhite()) {
         std::vector<Vertex> verts = {
             // Front face (+Z)
@@ -74,57 +90,57 @@ public:
             Vertex(glm::vec3( 1, -1,  1), glm::vec3(0, 0,  1), glm::vec2(1, 0)),
             Vertex(glm::vec3( 1,  1,  1), glm::vec3(0, 0,  1), glm::vec2(1, 1)),
             Vertex(glm::vec3(-1,  1,  1), glm::vec3(0, 0,  1), glm::vec2(0, 1)),
-            
+
             // Back face (-Z)
             Vertex(glm::vec3( 1, -1, -1), glm::vec3(0, 0, -1), glm::vec2(0, 0)),
             Vertex(glm::vec3(-1, -1, -1), glm::vec3(0, 0, -1), glm::vec2(1, 0)),
             Vertex(glm::vec3(-1,  1, -1), glm::vec3(0, 0, -1), glm::vec2(1, 1)),
             Vertex(glm::vec3( 1,  1, -1), glm::vec3(0, 0, -1), glm::vec2(0, 1)),
-            
+
             // Top face (+Y)
             Vertex(glm::vec3(-1,  1, -1), glm::vec3(0, 1, 0), glm::vec2(0, 0)),
             Vertex(glm::vec3(-1,  1,  1), glm::vec3(0, 1, 0), glm::vec2(1, 0)),
             Vertex(glm::vec3( 1,  1,  1), glm::vec3(0, 1, 0), glm::vec2(1, 1)),
             Vertex(glm::vec3( 1,  1, -1), glm::vec3(0, 1, 0), glm::vec2(0, 1)),
-            
+
             // Bottom face (-Y)
             Vertex(glm::vec3(-1, -1, -1), glm::vec3(0, -1, 0), glm::vec2(0, 0)),
             Vertex(glm::vec3( 1, -1, -1), glm::vec3(0, -1, 0), glm::vec2(1, 0)),
             Vertex(glm::vec3( 1, -1,  1), glm::vec3(0, -1, 0), glm::vec2(1, 1)),
             Vertex(glm::vec3(-1, -1,  1), glm::vec3(0, -1, 0), glm::vec2(0, 1)),
-            
+
             // Right face (+X)
             Vertex(glm::vec3( 1, -1,  1), glm::vec3(1, 0, 0), glm::vec2(0, 0)),
             Vertex(glm::vec3( 1, -1, -1), glm::vec3(1, 0, 0), glm::vec2(1, 0)),
             Vertex(glm::vec3( 1,  1, -1), glm::vec3(1, 0, 0), glm::vec2(1, 1)),
             Vertex(glm::vec3( 1,  1,  1), glm::vec3(1, 0, 0), glm::vec2(0, 1)),
-            
+
             // Left face (-X)
             Vertex(glm::vec3(-1, -1, -1), glm::vec3(-1, 0, 0), glm::vec2(0, 0)),
             Vertex(glm::vec3(-1, -1,  1), glm::vec3(-1, 0, 0), glm::vec2(1, 0)),
             Vertex(glm::vec3(-1,  1,  1), glm::vec3(-1, 0, 0), glm::vec2(1, 1)),
             Vertex(glm::vec3(-1,  1, -1), glm::vec3(-1, 0, 0), glm::vec2(0, 1))
         };
-        
+
         std::vector<uint32_t> inds = {
-            0,  1,  2,  2,  3,  0,  // Front
-            4,  5,  6,  6,  7,  4,  // Back
-            8,  9,  10, 10, 11, 8,  // Top
-            12, 13, 14, 14, 15, 12, // Bottom
-            16, 17, 18, 18, 19, 16, // Right
-            20, 21, 22, 22, 23, 20  // Left
+            0,  1,  2,  2,  3,  0,   // Front
+            4,  5,  6,  6,  7,  4,   // Back
+            8,  9,  10, 10, 11, 8,   // Top
+            12, 13, 14, 14, 15, 12,  // Bottom
+            16, 17, 18, 18, 19, 16,  // Right
+            20, 21, 22, 22, 23, 20   // Left
         };
-        
+
         return Mesh(verts, inds, mat);
     }
 
-
-    static Mesh CreatePlane(float width, float height, const Material& mat = Material::PlasticWhite()) {
+    static Mesh CreatePlane(float width, float height,
+                            const Material& mat = Material::PlasticWhite()) {
         std::vector<Vertex> verts = {
             Vertex(glm::vec3(-width/2, 0, -height/2), glm::vec3(0, 1, 0), glm::vec2(0, 0)),
-            Vertex(glm::vec3(width/2, 0, -height/2), glm::vec3(0, 1, 0), glm::vec2(1, 0)),
-            Vertex(glm::vec3(width/2, 0, height/2), glm::vec3(0, 1, 0), glm::vec2(1, 1)),
-            Vertex(glm::vec3(-width/2, 0, height/2), glm::vec3(0, 1, 0), glm::vec2(0, 1))
+            Vertex(glm::vec3( width/2, 0, -height/2), glm::vec3(0, 1, 0), glm::vec2(1, 0)),
+            Vertex(glm::vec3( width/2, 0,  height/2), glm::vec3(0, 1, 0), glm::vec2(1, 1)),
+            Vertex(glm::vec3(-width/2, 0,  height/2), glm::vec3(0, 1, 0), glm::vec2(0, 1))
         };
 
         std::vector<uint32_t> inds = {0, 1, 2, 2, 3, 0};
@@ -132,24 +148,24 @@ public:
         return Mesh(verts, inds, mat);
     }
 
-    static Mesh CreateSphere(float radius, int segments = 32, int rings = 16, 
-                            const Material& mat = Material::PlasticWhite()) {
-        std::vector<Vertex> verts;
+    static Mesh CreateSphere(float radius, int segments = 32, int rings = 16,
+                             const Material& mat = Material::PlasticWhite()) {
+        std::vector<Vertex>   verts;
         std::vector<uint32_t> inds;
 
         for (int i = 0; i <= rings; ++i) {
             float phi = glm::pi<float>() * i / rings;
             for (int j = 0; j <= segments; ++j) {
                 float theta = 2.0f * glm::pi<float>() * j / segments;
-                
+
                 float x = radius * std::sin(phi) * std::cos(theta);
                 float y = radius * std::cos(phi);
                 float z = radius * std::sin(phi) * std::sin(theta);
-                
+
                 glm::vec3 pos(x, y, z);
                 glm::vec3 normal = glm::normalize(pos);
                 glm::vec2 uv((float)j / segments, (float)i / rings);
-                
+
                 verts.emplace_back(pos, normal, uv);
             }
         }
@@ -158,11 +174,11 @@ public:
             for (int j = 0; j < segments; ++j) {
                 uint32_t a = i * (segments + 1) + j;
                 uint32_t b = a + segments + 1;
-                
+
                 inds.push_back(a);
                 inds.push_back(b);
                 inds.push_back(a + 1);
-                
+
                 inds.push_back(a + 1);
                 inds.push_back(b);
                 inds.push_back(b + 1);
@@ -170,5 +186,50 @@ public:
         }
 
         return Mesh(verts, inds, mat);
+    }
+
+    // ОБЪЁМНАЯ РАМКА КАРТИНЫ
+    // Возвращаем структуру с указателями на Mesh, чтобы не было проблем с неполными типами
+    static PictureFrameMeshes CreateVolumePictureFrame(
+        float width,
+        float height,
+        float frameThickness,
+        float frameDepth,
+        const Material& frameMat,
+        const Material& pictureMat)
+    {
+        PictureFrameMeshes res;
+
+        float halfW = width  * 0.5f;
+        float halfH = height * 0.5f;
+        float t     = frameThickness;
+        float d     = frameDepth;
+
+        // 1. Плоскость картины (чуть утоплена внутрь рамки)
+        {
+            std::vector<Vertex>   verts;
+            std::vector<uint32_t> inds = {0,1,2, 2,3,0};
+
+            float z = -d * 0.5f + 0.001f;
+
+            verts.emplace_back(glm::vec3(-halfW + t, -halfH + t, z),
+                               glm::vec3(0,0,1), glm::vec2(0,0));
+            verts.emplace_back(glm::vec3( halfW - t, -halfH + t, z),
+                               glm::vec3(0,0,1), glm::vec2(1,0));
+            verts.emplace_back(glm::vec3( halfW - t,  halfH - t, z),
+                               glm::vec3(0,0,1), glm::vec2(1,1));
+            verts.emplace_back(glm::vec3(-halfW + t,  halfH - t, z),
+                               glm::vec3(0,0,1), glm::vec2(0,1));
+
+            res.picturePlane = new Mesh(verts, inds, pictureMat);
+        }
+
+        // 2. Объёмная рамка из кубов (меши, трансформы задам в сцене)
+        res.bottomBar = new Mesh(Mesh::CreateCube(frameMat));
+        res.topBar    = new Mesh(Mesh::CreateCube(frameMat));
+        res.leftBar   = new Mesh(Mesh::CreateCube(frameMat));
+        res.rightBar  = new Mesh(Mesh::CreateCube(frameMat));
+
+        return res;
     }
 };
