@@ -7,6 +7,6 @@ uniform float far_plane;
 
 void main() {
     float lightDistance = length(FragPos - lightPos);
-    // Записываем нормализованную по дальности глубину
+    
     gl_FragDepth = lightDistance / far_plane;
 }

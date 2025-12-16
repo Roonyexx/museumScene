@@ -19,7 +19,7 @@ void main() {
     Normal = mat3(transpose(inverse(model))) * normal;
     TexCoords = texCoords;
     
-    // Позиция в перспективе света для shadow mapping
+    
     FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
     
     gl_Position = projection * view * vec4(FragPos, 1.0);

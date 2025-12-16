@@ -13,12 +13,12 @@ private:
     unsigned int shadowHeight;
 
 public:
-    // Конструктор по умолчанию - создает 1024x1024
+    
     ShadowMap() : shadowWidth(1024), shadowHeight(1024) {
         init();
     }
 
-    // Конструктор с параметрами
+    
     ShadowMap(unsigned int width, unsigned int height) 
         : shadowWidth(width), shadowHeight(height) {
         init();
@@ -29,26 +29,26 @@ public:
     }
 
     void init() {
-        // Создаем framebuffer для рендеринга в shadow map
+        
         glGenFramebuffers(1, &framebuffer);
 
-        // Создаем текстуру глубины
+        
         glGenTextures(1, &depthMap);
         glBindTexture(GL_TEXTURE_2D, depthMap);
-        // Используем 24-битную глубину и nearest фильтрацию для точных теней
+        
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24,
                      shadowWidth, shadowHeight, 0,
                      GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         
         float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
         glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-        // Привязываем текстуру к framebuffer
+        
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, 
                               GL_TEXTURE_2D, depthMap, 0);
@@ -72,24 +72,24 @@ public:
         }
     }
 
-    // Привязываем framebuffer для записи (рендеринг shadow map)
+    
     void bindForRendering() {
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glViewport(0, 0, shadowWidth, shadowHeight);
     }
 
-    // Отвязываем framebuffer после записи
+    
     void unbindForRendering() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    // Привязываем текстуру для чтения в основном рендеринге
+    
     void bindTexture(GLuint textureUnit = 0) {
         glActiveTexture(GL_TEXTURE0 + textureUnit);
         glBindTexture(GL_TEXTURE_2D, depthMap);
     }
 
-    // Получить матрицу light space
+    
     glm::mat4 getLightSpaceMatrix(glm::vec3 lightPos, glm::vec3 lightDir, 
                                    glm::vec3 sceneCenter, float sceneRadius) {
         glm::vec3 actualLightPos = sceneCenter - glm::normalize(lightDir) * sceneRadius;
@@ -102,12 +102,12 @@ public:
         return lightProjection * lightView;
     }
 
-    // Получить ID текстуры глубины
+    
     GLuint getDepthMapTexture() const {
         return depthMap;
     }
 
-    // Получить разрешение shadow map
+    
     unsigned int getWidth() const {
         return shadowWidth;
     }

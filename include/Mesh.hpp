@@ -10,10 +10,10 @@
 #include "Material.hpp"
 #include "Texture.hpp"
 
-// Вперёд объявляем Mesh, чтобы использовать его в PictureFrameMeshes
+
 class Mesh;
 
-// Полное определение структуры рамки
+
 struct PictureFrameMeshes {
     Mesh* picturePlane = nullptr;
     Mesh* bottomBar    = nullptr;
@@ -82,40 +82,40 @@ public:
         glDeleteVertexArrays(1, &VAO_id);
     }
 
-    // ===== Примитивы =====
+    
     static Mesh CreateCube(const Material& mat = Material::PlasticWhite()) {
         std::vector<Vertex> verts = {
-            // Front face (+Z)
+            
             Vertex(glm::vec3(-1, -1,  1), glm::vec3(0, 0,  1), glm::vec2(0, 0)),
             Vertex(glm::vec3( 1, -1,  1), glm::vec3(0, 0,  1), glm::vec2(1, 0)),
             Vertex(glm::vec3( 1,  1,  1), glm::vec3(0, 0,  1), glm::vec2(1, 1)),
             Vertex(glm::vec3(-1,  1,  1), glm::vec3(0, 0,  1), glm::vec2(0, 1)),
 
-            // Back face (-Z)
+            
             Vertex(glm::vec3( 1, -1, -1), glm::vec3(0, 0, -1), glm::vec2(0, 0)),
             Vertex(glm::vec3(-1, -1, -1), glm::vec3(0, 0, -1), glm::vec2(1, 0)),
             Vertex(glm::vec3(-1,  1, -1), glm::vec3(0, 0, -1), glm::vec2(1, 1)),
             Vertex(glm::vec3( 1,  1, -1), glm::vec3(0, 0, -1), glm::vec2(0, 1)),
 
-            // Top face (+Y)
+            
             Vertex(glm::vec3(-1,  1, -1), glm::vec3(0, 1, 0), glm::vec2(0, 0)),
             Vertex(glm::vec3(-1,  1,  1), glm::vec3(0, 1, 0), glm::vec2(1, 0)),
             Vertex(glm::vec3( 1,  1,  1), glm::vec3(0, 1, 0), glm::vec2(1, 1)),
             Vertex(glm::vec3( 1,  1, -1), glm::vec3(0, 1, 0), glm::vec2(0, 1)),
 
-            // Bottom face (-Y)
+            
             Vertex(glm::vec3(-1, -1, -1), glm::vec3(0, -1, 0), glm::vec2(0, 0)),
             Vertex(glm::vec3( 1, -1, -1), glm::vec3(0, -1, 0), glm::vec2(1, 0)),
             Vertex(glm::vec3( 1, -1,  1), glm::vec3(0, -1, 0), glm::vec2(1, 1)),
             Vertex(glm::vec3(-1, -1,  1), glm::vec3(0, -1, 0), glm::vec2(0, 1)),
 
-            // Right face (+X)
+            
             Vertex(glm::vec3( 1, -1,  1), glm::vec3(1, 0, 0), glm::vec2(0, 0)),
             Vertex(glm::vec3( 1, -1, -1), glm::vec3(1, 0, 0), glm::vec2(1, 0)),
             Vertex(glm::vec3( 1,  1, -1), glm::vec3(1, 0, 0), glm::vec2(1, 1)),
             Vertex(glm::vec3( 1,  1,  1), glm::vec3(1, 0, 0), glm::vec2(0, 1)),
 
-            // Left face (-X)
+            
             Vertex(glm::vec3(-1, -1, -1), glm::vec3(-1, 0, 0), glm::vec2(0, 0)),
             Vertex(glm::vec3(-1, -1,  1), glm::vec3(-1, 0, 0), glm::vec2(1, 0)),
             Vertex(glm::vec3(-1,  1,  1), glm::vec3(-1, 0, 0), glm::vec2(1, 1)),
@@ -123,12 +123,12 @@ public:
         };
 
         std::vector<uint32_t> inds = {
-            0,  1,  2,  2,  3,  0,   // Front
-            4,  5,  6,  6,  7,  4,   // Back
-            8,  9,  10, 10, 11, 8,   // Top
-            12, 13, 14, 14, 15, 12,  // Bottom
-            16, 17, 18, 18, 19, 16,  // Right
-            20, 21, 22, 22, 23, 20   // Left
+            0,  1,  2,  2,  3,  0,   
+            4,  5,  6,  6,  7,  4,   
+            8,  9,  10, 10, 11, 8,   
+            12, 13, 14, 14, 15, 12,  
+            16, 17, 18, 18, 19, 16,  
+            20, 21, 22, 22, 23, 20   
         };
 
         return Mesh(verts, inds, mat);
@@ -188,8 +188,8 @@ public:
         return Mesh(verts, inds, mat);
     }
 
-    // ОБЪЁМНАЯ РАМКА КАРТИНЫ
-    // Возвращаем структуру с указателями на Mesh, чтобы не было проблем с неполными типами
+    
+    
     static PictureFrameMeshes CreateVolumePictureFrame(
         float width,
         float height,
@@ -205,7 +205,7 @@ public:
         float t     = frameThickness;
         float d     = frameDepth;
 
-        // 1. Плоскость картины (чуть утоплена внутрь рамки)
+        
         {
             std::vector<Vertex>   verts;
             std::vector<uint32_t> inds = {0,1,2, 2,3,0};
@@ -224,7 +224,7 @@ public:
             res.picturePlane = new Mesh(verts, inds, pictureMat);
         }
 
-        // 2. Объёмная рамка из кубов (меши, трансформы задам в сцене)
+        
         res.bottomBar = new Mesh(Mesh::CreateCube(frameMat));
         res.topBar    = new Mesh(Mesh::CreateCube(frameMat));
         res.leftBar   = new Mesh(Mesh::CreateCube(frameMat));

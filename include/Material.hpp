@@ -3,12 +3,12 @@
 #include <glm/glm.hpp>
 
 struct Material {
-    glm::vec3 ambient;     // Коэффициент окружающего света
-    glm::vec3 diffuse;     // Коэффициент рассеянного света
-    glm::vec3 specular;    // Коэффициент зеркального света
-    float shininess;       // Коэффициент блеска (отражательная способность)
+    glm::vec3 ambient;     
+    glm::vec3 diffuse;     
+    glm::vec3 specular;    
+    float shininess;       
 
-    // Стандартные материалы
+    
     static Material PlasticWhite() {
         return {glm::vec3(0.0f, 0.0f, 0.0f),
                 glm::vec3(0.55f, 0.55f, 0.55f),
@@ -44,29 +44,29 @@ struct Material {
                 0.25f * 128.0f};
     }
 
-    // НОВЫЙ: Материал для пола (матовый, без бликов)
+    
     static Material Floor() {
-        // Сделаем пол более приглушённым: уменьшим ambient и diffuse
-        return {glm::vec3(0.15f, 0.15f, 0.15f),      // ниже ambient
-            glm::vec3(0.45f, 0.45f, 0.45f),      // умеренный diffuse
-            glm::vec3(0.02f, 0.02f, 0.02f),     // очень слабый specular (матовый)
-            8.0f};                               // низкий shininess
+        
+        return {glm::vec3(0.05f, 0.05f, 0.05f),      
+            glm::vec3(0.45f, 0.45f, 0.45f),      
+            glm::vec3(0.02f, 0.02f, 0.02f),     
+            8.0f};                               
     }
 
-    // НОВЫЙ: Материал для стен (матовый камень)
+    
     static Material Wall() {
-        // Немного усилим ambient/diffuse, чтобы стены выглядели ровнее при рассеянном освещении
-        return {glm::vec3(0.25f, 0.25f, 0.25f),      // чуть выше ambient
-            glm::vec3(0.5f, 0.5f, 0.5f),         // более заметный diffuse
-            glm::vec3(0.02f, 0.02f, 0.02f),     // очень слабый specular
-            4.0f};                               // низкий shininess
+        
+        return {glm::vec3(0.25f, 0.25f, 0.25f),      
+            glm::vec3(0.5f, 0.5f, 0.5f),         
+            glm::vec3(0.02f, 0.02f, 0.02f),     
+            4.0f};                               
     }
 
-    // НОВЫЙ: Материал для потолка (светлый, матовый)
+    
     static Material Ceiling() {
         return {glm::vec3(0.3f, 0.3f, 0.3f),
                 glm::vec3(0.75f, 0.75f, 0.75f),
-                glm::vec3(0.03f, 0.03f, 0.03f),     // СЛАБЫЙ specular
+                glm::vec3(0.03f, 0.03f, 0.03f),     
                 6.0f};
     }
 
@@ -74,8 +74,8 @@ struct Material {
         Material mat;
         mat.ambient   = glm::vec3(0.15f, 0.15f, 0.16f);
         mat.diffuse   = glm::vec3(0.5f, 0.5f, 0.52f);
-        mat.specular  = glm::vec3(0.4f, 0.4f, 0.45f);   // мягкие блики
-        mat.shininess = 32.0f;                           // менее острые отражения
+        mat.specular  = glm::vec3(0.4f, 0.4f, 0.45f);   
+        mat.shininess = 32.0f;                           
         return mat;
     }
 };

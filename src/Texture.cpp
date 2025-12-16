@@ -16,7 +16,7 @@ Texture::Texture(const char* image, GLenum texType, GLenum slot,
         return;
     }
 
-    // корректируем формат по числу каналов
+    
     GLenum dataFormat = GL_RGB;
     if (numColCh == 1)      dataFormat = GL_RED;
     else if (numColCh == 3) dataFormat = GL_RGB;

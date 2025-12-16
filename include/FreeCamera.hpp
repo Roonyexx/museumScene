@@ -18,6 +18,7 @@ private:
     float speed;
     float sensitivity;
     glm::mat4 projection;
+    bool cursorCaptured = false;
 
 public:
     FreeCamera(glm::vec3 pos, glm::vec3 target)
@@ -56,9 +57,10 @@ public:
     }
 
     void handleInput(GLFWwindow* window, float deltaTime) {
+        updateCursorCapture(window);
         int width, height;
         glfwGetWindowSize(window, &width, &height);
-        // Не центрируем курсор здесь — сначала читаем текущее положение в обработчике мыши
+        
 
         const float moveDistance = speed * deltaTime;
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
@@ -83,10 +85,28 @@ public:
         handleMouseMovement(window, deltaTime);
     }
 
+    // Проверяем фокус окна и захватываем/освобождаем курсор
+    void updateCursorCapture(GLFWwindow* window) {
+        int focused = glfwGetWindowAttrib(window, GLFW_FOCUSED);
+        if (focused && !cursorCaptured) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            // при переходе в захваченный режим центрируем курсор
+            int w, h; glfwGetWindowSize(window, &w, &h);
+            glfwSetCursorPos(window, w / 2.0, h / 2.0);
+            cursorCaptured = true;
+        } else if (!focused && cursorCaptured) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            cursorCaptured = false;
+        }
+    }
+
 private:
     void handleMouseMovement(GLFWwindow* window, float deltaTime) {
         int width, height;
         glfwGetWindowSize(window, &width, &height);
+        // Обрабатываем движение мыши только если курсор захвачен (окно в фокусе)
+        if (!cursorCaptured) return;
+
         double centerX = width / 2.0;
         double centerY = height / 2.0;
         double xpos, ypos;
@@ -104,9 +124,10 @@ private:
         if (pitch < -89.0f) pitch = -89.0f;
 
         updateCameraVectors();
+        // возвращаем курсор в центр окна, чтобы далее измерять относительное движение
         glfwSetCursorPos(window, centerX, centerY);
     }
-        // После вычисления поворота возвращаем курсор в центр окна
+        
 
     void updateCameraVectors() {
         glm::vec3 newFront;

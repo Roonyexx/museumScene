@@ -23,18 +23,18 @@ public:
         glGenTextures(1, &depthCubemap);
         glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
         for (unsigned int i = 0; i < 6; ++i) {
-            // 24-bit depth component for better precision
+            
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT24,
                          width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
         }
-        // Use linear filtering for smoother transitions when sampling with offsets
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-        // Не прикрепляем конкретную грань здесь — будем прикреплять face перед каждым проходом
+        
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
@@ -56,14 +56,14 @@ public:
         glViewport(0, 0, width, height);
     }
 
-    // Прикрепить конкретную грань куб-карты как глубинное прикрепление
+    
     void attachFace(unsigned int faceIndex) {
         if (faceIndex >= 6) return;
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                                GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex,
                                depthCubemap, 0);
-        // В некоторых реализациях нужно явно выставить буферы
+        
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
     }

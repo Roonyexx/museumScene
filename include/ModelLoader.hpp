@@ -13,7 +13,7 @@
 
 class ModelLoader {
 public:
-    // Загрузка OBJ модели с опциональной текстурой
+    
     static Mesh loadOBJ(const std::string& filepath,
                         const Material& material = Material::PlasticWhite(),
                         Texture* texture = nullptr) {
@@ -24,13 +24,13 @@ public:
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
         
-        // Для избежания дубликатов вершин
+        
         std::unordered_map<std::string, uint32_t> uniqueVertices;
         
         std::ifstream file(filepath);
         if (!file.is_open()) {
             std::cerr << "Failed to open OBJ file: " << filepath << std::endl;
-            return Mesh::CreateCube(material); // Возвращаем куб по умолчанию
+            return Mesh::CreateCube(material); 
         }
         
         std::cout << "Loading OBJ: " << filepath << std::endl;
@@ -42,25 +42,25 @@ public:
             iss >> prefix;
             
             if (prefix == "v") {
-                // Вершина позиции
+                
                 glm::vec3 position;
                 iss >> position.x >> position.y >> position.z;
                 temp_positions.push_back(position);
             }
             else if (prefix == "vt") {
-                // Текстурные координаты
+                
                 glm::vec2 texcoord;
                 iss >> texcoord.x >> texcoord.y;
                 temp_texcoords.push_back(texcoord);
             }
             else if (prefix == "vn") {
-                // Нормали
+                
                 glm::vec3 normal;
                 iss >> normal.x >> normal.y >> normal.z;
                 temp_normals.push_back(normal);
             }
             else if (prefix == "f") {
-                // Грань (поддерживает треугольники и квады)
+                
                 std::vector<std::string> faceVertices;
                 std::string vertex;
                 
@@ -68,7 +68,7 @@ public:
                     faceVertices.push_back(vertex);
                 }
                 
-                // Триангуляция для квадов
+                
                 if (faceVertices.size() >= 3) {
                     for (size_t i = 1; i < faceVertices.size() - 1; ++i) {
                         processVertex(faceVertices[0], temp_positions, temp_texcoords, 
@@ -84,7 +84,7 @@ public:
         
         file.close();
         
-        // Если нормали отсутствуют в файле, вычисляем их
+        
         if (temp_normals.empty()) {
             std::cout << "Calculating normals for " << filepath << std::endl;
             calculateNormals(vertices, indices);
@@ -97,7 +97,7 @@ public:
         return mesh;
     }
     
-    // Загрузка OBJ с автоматической текстурой
+    
     static Mesh loadOBJWithTexture(const std::string& objPath,
                                     const std::string& texturePath,
                                     const Material& material = Material::PlasticWhite()) {
@@ -114,12 +114,12 @@ public:
         return loadOBJ(objPath, material, texture);
     }
     
-    // Загрузка нескольких моделей из одного файла (если есть группы)
+    
     static std::vector<Mesh> loadOBJMultiple(const std::string& filepath,
                                              const Material& material = Material::PlasticWhite()) {
         std::vector<Mesh> meshes;
         
-        // Временные данные
+        
         std::vector<glm::vec3> temp_positions;
         std::vector<glm::vec3> temp_normals;
         std::vector<glm::vec2> temp_texcoords;
@@ -158,7 +158,7 @@ public:
                 temp_normals.push_back(normal);
             }
             else if (prefix == "g" || prefix == "o") {
-                // Новая группа/объект - сохраняем предыдущий
+                
                 if (!currentVertices.empty()) {
                     if (temp_normals.empty()) {
                         calculateNormals(currentVertices, currentIndices);
@@ -191,7 +191,7 @@ public:
             }
         }
         
-        // Сохраняем последнюю группу
+        
         if (!currentVertices.empty()) {
             if (temp_normals.empty()) {
                 calculateNormals(currentVertices, currentIndices);
@@ -213,20 +213,20 @@ private:
                              std::vector<Vertex>& vertices,
                              std::vector<uint32_t>& indices,
                              std::unordered_map<std::string, uint32_t>& uniqueVertices) {
-        // Проверяем, встречалась ли уже эта вершина
+        
         auto it = uniqueVertices.find(vertexData);
         if (it != uniqueVertices.end()) {
-            // Вершина уже есть, используем её индекс
+            
             indices.push_back(it->second);
             return;
         }
         
-        // Парсим индексы вершины
+        
         std::istringstream iss(vertexData);
         std::string indexStr;
         int posIdx = 0, texIdx = -1, normIdx = -1;
         
-        // Формат: v/vt/vn или v//vn или v/vt или v
+        
         std::getline(iss, indexStr, '/');
         if (!indexStr.empty()) {
             posIdx = std::stoi(indexStr) - 1;
@@ -243,7 +243,7 @@ private:
             }
         }
         
-        // Создаем вершину
+        
         Vertex vertex;
         
         if (posIdx >= 0 && posIdx < (int)positions.size()) {
@@ -264,7 +264,7 @@ private:
             vertex.normal = glm::vec3(0.0f, 1.0f, 0.0f);
         }
         
-        // Добавляем новую вершину
+        
         uint32_t newIndex = static_cast<uint32_t>(vertices.size());
         vertices.push_back(vertex);
         indices.push_back(newIndex);
@@ -273,12 +273,12 @@ private:
     
     static void calculateNormals(std::vector<Vertex>& vertices,
                                 const std::vector<uint32_t>& indices) {
-        // Обнуляем нормали
+        
         for (auto& vertex : vertices) {
             vertex.normal = glm::vec3(0.0f);
         }
         
-        // Вычисляем нормали граней и суммируем для вершин
+        
         for (size_t i = 0; i < indices.size(); i += 3) {
             uint32_t idx0 = indices[i];
             uint32_t idx1 = indices[i + 1];
@@ -297,7 +297,7 @@ private:
             vertices[idx2].normal += normal;
         }
         
-        // Нормализуем накопленные нормали
+        
         for (auto& vertex : vertices) {
             if (glm::length(vertex.normal) > 0.0f) {
                 vertex.normal = glm::normalize(vertex.normal);

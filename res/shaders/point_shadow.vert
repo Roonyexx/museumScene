@@ -3,7 +3,7 @@
 layout(location = 0) in vec3 aPos;
 
 uniform mat4 model;
-uniform mat4 lightSpaceMatrix; // proj * view for current face
+uniform mat4 lightSpaceMatrix; 
 
 out vec3 FragPos;
 

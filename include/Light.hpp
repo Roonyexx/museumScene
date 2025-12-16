@@ -4,28 +4,28 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 enum class LightType {
-    POINT,        // Точечный источник света
-    DIRECTIONAL,  // Направленный (солнце)
-    SPOTLIGHT     // Прожектор
+    POINT,        
+    DIRECTIONAL,  
+    SPOTLIGHT     
 };
 
 struct Light {
     LightType type;
-    glm::vec3 position;      // Позиция (для точечного и прожектора)
-    glm::vec3 direction;     // Направление (для направленного и прожектора)
-    glm::vec3 color;         // Цвет света
-    float intensity;         // Интенсивность
-    float range;             // Радиус действия (для точечного)
-    float cutOff;            // Внутренний угол (для прожектора)
-    float outerCutOff;       // Внешний угол (для прожектора)
+    glm::vec3 position;      
+    glm::vec3 direction;     
+    glm::vec3 color;         
+    float intensity;         
+    float range;             
+    float cutOff;            
+    float outerCutOff;       
 
-    // Конструктор для точечного света (Point Light)
+    
     Light(const glm::vec3& pos, const glm::vec3& col, float intens = 1.0f, float r = 100.0f)
         : type(LightType::POINT), position(pos), color(col), intensity(intens), range(r),
           direction(glm::vec3(0.0f)), cutOff(0.0f), outerCutOff(0.0f) {}
 
-    // Конструктор для направленного света (Directional Light)
-    // ВАЖНО: порядок параметров отличается от Point Light!
+    
+    
     static Light CreateDirectional(const glm::vec3& col, const glm::vec3& dir, float intens = 1.0f) {
         Light light;
         light.type = LightType::DIRECTIONAL;
@@ -39,7 +39,7 @@ struct Light {
         return light;
     }
 
-    // Конструктор для прожектора (Spotlight)
+    
     static Light CreateSpotlight(const glm::vec3& pos, const glm::vec3& dir, 
                                  const glm::vec3& col, float intens, float cutoff, float outerCutoff) {
         Light light;
@@ -54,7 +54,7 @@ struct Light {
         return light;
     }
 
-    // Приватный конструктор по умолчанию для статических методов
+    
 private:
     Light() = default;
 };

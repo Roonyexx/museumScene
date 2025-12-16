@@ -87,7 +87,7 @@ public:
         }
     }
 
-    // === UNIFORM SETTERS ===
+    
 
     void setInt(const std::string& name, int value) const {
         GLint loc = glGetUniformLocation(ID, name.c_str());
