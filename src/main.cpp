@@ -59,6 +59,7 @@ int main() {
     // === СОЗДАНИЕ ШЕЙДЕРОВ ===
     Shader shader("res/shaders/default.vert", "res/shaders/default.frag");
     Shader shadowShader("res/shaders/shadow.vert", "res/shaders/shadow.frag");
+    Shader pointShadowShader("res/shaders/point_shadow.vert", "res/shaders/point_shadow.frag");
 
     // === СОЗДАНИЕ КАМЕРЫ ===
     FreeCamera camera(glm::vec3(0.0f, 2.0f, 8.0f),
@@ -71,6 +72,8 @@ int main() {
     // === СОЗДАНИЕ РЕНДЕРЕРА ===
     Renderer renderer(shader);
     renderer.initShadowMap(shadowShader, WINDOW_WIDTH, WINDOW_HEIGHT);
+    // Инициализируем куб-карту теней (size, far_plane)
+    renderer.initPointShadow(pointShadowShader, 1024, 60.0f);
 
     // Добавляем объекты
     for (size_t i = 0; i < scene.getMeshCount(); ++i) {

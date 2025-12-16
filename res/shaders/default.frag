@@ -29,6 +29,8 @@ uniform int numLights;
 
 uniform sampler2D shadowMap;
 uniform mat4 lightSpaceMatrix;
+uniform samplerCube pointShadowMap;
+uniform float far_plane;
 
 uniform vec3 objectColor;
 uniform vec3 matAmbient;
@@ -88,8 +90,37 @@ vec3 CalculatePointLight(Light light, vec3 norm, vec3 viewDir, vec3 fragColor) {
     // Затухание с расстоянием
     float distance = length(light.position - FragPos);
     float attenuation = 1.0 / (1.0 + 0.1 * distance + 0.01 * distance * distance);
-    
-    return (diffuse + specular) * light.intensity * attenuation;
+
+    // Тени от точечного света через depth cubemap с PCF
+    float shadow = 0.0;
+    vec3 fragToLight = FragPos - light.position;
+    float currentDepth = length(fragToLight);
+
+    // динамический bias в зависимости от угла
+    float bias = max(0.05 * (1.0 - dot(norm, normalize(-lightDir))), 0.005);
+
+    // массив смещений для PCF (взято и адаптировано по общим примерам)
+    vec3 samples[20] = vec3[](
+        vec3( 1.0,  1.0,  1.0), vec3( -1.0,  1.0,  1.0), vec3( 1.0, -1.0,  1.0), vec3(-1.0, -1.0,  1.0),
+        vec3( 1.0,  1.0, -1.0), vec3( -1.0,  1.0, -1.0), vec3( 1.0, -1.0, -1.0), vec3(-1.0, -1.0, -1.0),
+        vec3( 1.0,  0.0,  0.0), vec3(-1.0,  0.0,  0.0), vec3( 0.0,  1.0,  0.0), vec3( 0.0, -1.0,  0.0),
+        vec3( 0.0,  0.0,  1.0), vec3( 0.7,  0.7,  0.0), vec3(-0.7,  0.7,  0.0), vec3( 0.7, -0.7,  0.0),
+        vec3(-0.7, -0.7,  0.0), vec3( 0.7,  0.0,  0.7), vec3(-0.7,  0.0,  0.7), vec3( 0.0,  0.7,  0.7)
+    );
+
+    int samplesCount = 20;
+    float diskRadius = (1.0 + (currentDepth / far_plane)) / 30.0; // регулирует размытие в зависимости от расстояния
+
+    for (int i = 0; i < samplesCount; ++i) {
+        float closestDepth = texture(pointShadowMap, fragToLight + samples[i] * diskRadius).r;
+        closestDepth *= far_plane;
+        if (currentDepth - bias > closestDepth) shadow += 1.0;
+    }
+    shadow /= float(samplesCount);
+
+    // Сохраняем небольшое освещение даже в тени
+    float shadowFactor = mix(1.0, 0.0, shadow);
+    return (diffuse + specular) * light.intensity * attenuation * shadowFactor;
 }
 
 // Расчет направленного света
