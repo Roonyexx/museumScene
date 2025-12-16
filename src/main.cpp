@@ -73,7 +73,7 @@ int main() {
     Renderer renderer(shader);
     renderer.initShadowMap(shadowShader, WINDOW_WIDTH, WINDOW_HEIGHT);
     // Инициализируем куб-карту теней (size, far_plane)
-    renderer.initPointShadow(pointShadowShader, 1024, 60.0f);
+    renderer.initPointShadow(pointShadowShader, 2048, 60.0f);
 
     // Добавляем объекты
     for (size_t i = 0; i < scene.getMeshCount(); ++i) {

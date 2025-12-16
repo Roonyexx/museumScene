@@ -47,19 +47,19 @@ public:
         // === СТЕНЫ И ПОЛ ===
         
         // Пол (МАТЕРИАЛ Floor - матовый)
-        Mesh floor = Mesh::CreatePlane(20.0f, 20.0f, Material::Floor());
+        Mesh floor = Mesh::CreatePlane(40.0f, 20.0f, Material::Floor());
         // Потолок и стены относительно светлее; пол сделаем темнее, чтобы не быть переэкспонированным
         scene.addMesh(floor, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -5.0f, 0.0f)),
                  Material::Floor(), glm::vec3(0.5f, 0.5f, 0.5f));
 
         // Потолок (МАТЕРИАЛ Ceiling - светлый, матовый)
-        Mesh ceiling = Mesh::CreatePlane(20.0f, 20.0f, Material::Ceiling());
+        Mesh ceiling = Mesh::CreatePlane(40.0f, 20.0f, Material::Ceiling());
         scene.addMesh(ceiling, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 15.0f, 0.0f)),
                      Material::Ceiling(), glm::vec3(0.9f, 0.9f, 0.9f));
 
         // Передняя стена (МАТЕРИАЛ Wall - матовый камень)
         // ИСПРАВЛЕНО: Правильная ориентация нормали (смотрит внутрь помещения)
-        Mesh frontWall = Mesh::CreatePlane(20.0f, 20.0f, Material::Wall());
+        Mesh frontWall = Mesh::CreatePlane(40.0f, 20.0f, Material::Wall());
         scene.addMesh(frontWall, 
                      glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, -10.0f)) * 
                      glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
@@ -68,7 +68,7 @@ public:
 
         // Задняя стена (МАТЕРИАЛ Wall - матовый камень)
         // ИСПРАВЛЕНО: Правильная ориентация нормали
-        Mesh backWall = Mesh::CreatePlane(20.0f, 20.0f, Material::Wall());
+        Mesh backWall = Mesh::CreatePlane(40.0f, 20.0f, Material::Wall());
         // Повернём заднюю стену так, чтобы её нормаль смотрела внутрь комнаты (-Z)
         scene.addMesh(backWall,
              glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 10.0f)) *
@@ -79,7 +79,7 @@ public:
         // ИСПРАВЛЕНО: Правильная ориентация нормали
         Mesh leftWall = Mesh::CreatePlane(20.0f, 20.0f, Material::Wall());
         scene.addMesh(leftWall, 
-                     glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 5.0f, 0.0f)) * 
+                     glm::translate(glm::mat4(1.0f), glm::vec3(-20.0f, 5.0f, 0.0f)) * 
                      glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
                      glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
                      Material::Wall(), glm::vec3(0.75f, 0.75f, 0.75f));
@@ -88,7 +88,7 @@ public:
         // ИСПРАВЛЕНО: Правильная ориентация нормали
         Mesh rightWall = Mesh::CreatePlane(20.0f, 20.0f, Material::Wall());
         scene.addMesh(rightWall, 
-                     glm::translate(glm::mat4(1.0f), glm::vec3(10.0f, 5.0f, 0.0f)) * 
+                     glm::translate(glm::mat4(1.0f), glm::vec3(20.0f, 5.0f, 0.0f)) * 
                      glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
                      Material::Wall(), glm::vec3(0.75f, 0.75f, 0.75f));
 

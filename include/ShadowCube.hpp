@@ -39,11 +39,11 @@ public:
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
 
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             std::cerr << "ERROR::SHADOW_CUBE::FRAMEBUFFER_NOT_COMPLETE" << std::endl;
         }
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     void cleanup() {
