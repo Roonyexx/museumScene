@@ -48,8 +48,9 @@ public:
         
         // Пол (МАТЕРИАЛ Floor - матовый)
         Mesh floor = Mesh::CreatePlane(20.0f, 20.0f, Material::Floor());
+        // Потолок и стены относительно светлее; пол сделаем темнее, чтобы не быть переэкспонированным
         scene.addMesh(floor, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -5.0f, 0.0f)),
-                     Material::Floor(), glm::vec3(0.7f, 0.7f, 0.7f));
+                 Material::Floor(), glm::vec3(0.5f, 0.5f, 0.5f));
 
         // Потолок (МАТЕРИАЛ Ceiling - светлый, матовый)
         Mesh ceiling = Mesh::CreatePlane(20.0f, 20.0f, Material::Ceiling());
@@ -68,10 +69,11 @@ public:
         // Задняя стена (МАТЕРИАЛ Wall - матовый камень)
         // ИСПРАВЛЕНО: Правильная ориентация нормали
         Mesh backWall = Mesh::CreatePlane(20.0f, 20.0f, Material::Wall());
-        scene.addMesh(backWall, 
-                     glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 10.0f)) * 
-                     glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-                     Material::Wall(), glm::vec3(0.75f, 0.75f, 0.75f));
+        // Повернём заднюю стену так, чтобы её нормаль смотрела внутрь комнаты (-Z)
+        scene.addMesh(backWall,
+             glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 10.0f)) *
+             glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+             Material::Wall(), glm::vec3(0.75f, 0.75f, 0.75f));
 
         // Левая стена (МАТЕРИАЛ Wall - матовый камень)
         // ИСПРАВЛЕНО: Правильная ориентация нормали
@@ -92,23 +94,11 @@ public:
 
         // === СВЕТЯЩИЕСЯ ПАНЕЛИ (3 штуки на потолке) ===
         
-        // Левая светящаяся панель
-        Mesh lightPanel1 = Mesh::CreatePlane(3.0f, 3.0f, Material::MetalGold());
-        scene.addMesh(lightPanel1, 
-                     glm::translate(glm::mat4(1.0f), glm::vec3(-4.0f, 14.5f, -3.0f)),
-                     Material::MetalGold(), glm::vec3(1.0f, 1.0f, 0.8f));
-
-        // Центральная светящаяся панель
+        // Центральная светящаяся панель (единственный видимый источник)
         Mesh lightPanel2 = Mesh::CreatePlane(3.0f, 3.0f, Material::MetalGold());
-        scene.addMesh(lightPanel2, 
-                     glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 14.5f, 0.0f)),
-                     Material::MetalGold(), glm::vec3(1.0f, 1.0f, 0.8f));
-
-        // Правая светящаяся панель
-        Mesh lightPanel3 = Mesh::CreatePlane(3.0f, 3.0f, Material::MetalGold());
-        scene.addMesh(lightPanel3, 
-                     glm::translate(glm::mat4(1.0f), glm::vec3(4.0f, 14.5f, 3.0f)),
-                     Material::MetalGold(), glm::vec3(1.0f, 1.0f, 0.8f));
+        scene.addMesh(lightPanel2,
+                 glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 14.5f, 0.0f)),
+                 Material::MetalGold(), glm::vec3(1.0f, 1.0f, 0.9f));
 
         // === ЭКСПОНАТЫ (на подиумах) ===
         
@@ -154,21 +144,10 @@ public:
 
         // === ИСТОЧНИКИ СВЕТА ===
         
-        // ИСПРАВЛЕНО: Увеличена интенсивность точечных источников света!
-        // Три светящихся панели (точечные источники света) - ЯРЧЕ!
-        scene.addLight(Light(glm::vec3(-4.0f, 14.0f, -3.0f), 
-                            glm::vec3(1.0f, 1.0f, 0.8f), 3.0f, 30.0f));  // 2.0f → 3.0f, 20.0f → 30.0f
-        
-        scene.addLight(Light(glm::vec3(0.0f, 14.0f, 0.0f), 
-                            glm::vec3(1.0f, 1.0f, 0.8f), 3.0f, 30.0f));  // 2.0f → 3.0f, 20.0f → 30.0f
-        
-        scene.addLight(Light(glm::vec3(4.0f, 14.0f, 3.0f), 
-                            glm::vec3(1.0f, 1.0f, 0.8f), 3.0f, 30.0f));  // 2.0f → 3.0f, 20.0f → 30.0f
-
-        // ИСПРАВЛЕНО: Увеличена интенсивность направленного света!
-        // Дополнительный направленный свет для общего освещения - ЯРЧЕ!
-        scene.addLight(Light::CreateDirectional(glm::vec3(0.6f, 0.7f, 0.8f), 
-                                               glm::vec3(0.3f, -1.0f, 0.3f), 0.6f));  // 0.3f → 0.6f
+        // Источник света — точечный в центре потолка (визуально соответствует панели)
+        // Интенсивность и радиус заданы так, чтобы хорошо освещать помещение
+        scene.addLight(Light(glm::vec3(0.0f, 14.0f, 0.0f),
+                      glm::vec3(1.0f, 0.98f, 0.9f), 8.0f, 40.0f));
 
         return scene;
     }

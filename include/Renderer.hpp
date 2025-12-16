@@ -39,7 +39,7 @@ public:
         if (shadowMap != nullptr) {
             delete shadowMap;
         }
-        shadowMap = new ShadowMap();
+        shadowMap = new ShadowMap(width, height);
     }
 
     void addObject(Mesh* mesh, const glm::mat4& transform,
@@ -79,7 +79,8 @@ private:
     void renderShadowMap() {
         shadowShader->activate();
         shadowMap->bindForRendering();
-        glViewport(0, 0, 1024, 1024);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
         glClear(GL_DEPTH_BUFFER_BIT);
 
         glm::vec3 lightDir = glm::vec3(0.3f, -1.0f, 0.3f);
@@ -100,12 +101,12 @@ private:
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
         shadowShader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
 
-        glCullFace(GL_FRONT);
         for (size_t i = 0; i < meshes.size(); ++i) {
             shadowShader->setMat4("model", transforms[i]);
             meshes[i]->draw();
         }
         glCullFace(GL_BACK);
+        glDisable(GL_CULL_FACE);
 
         shadowMap->unbindForRendering();
         glViewport(0, 0, screenWidth, screenHeight);

@@ -58,7 +58,7 @@ public:
     void handleInput(GLFWwindow* window, float deltaTime) {
         int width, height;
         glfwGetWindowSize(window, &width, &height);
-        glfwSetCursorPos(window, width / 2.0, height / 2.0);
+        // Не центрируем курсор здесь — сначала читаем текущее положение в обработчике мыши
 
         const float moveDistance = speed * deltaTime;
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
@@ -104,7 +104,9 @@ private:
         if (pitch < -89.0f) pitch = -89.0f;
 
         updateCameraVectors();
+        glfwSetCursorPos(window, centerX, centerY);
     }
+        // После вычисления поворота возвращаем курсор в центр окна
 
     void updateCameraVectors() {
         glm::vec3 newFront;

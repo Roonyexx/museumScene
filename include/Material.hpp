@@ -46,18 +46,20 @@ struct Material {
 
     // НОВЫЙ: Материал для пола (матовый, без бликов)
     static Material Floor() {
-        return {glm::vec3(0.3f, 0.3f, 0.3f),        // medium ambient
-                glm::vec3(0.7f, 0.7f, 0.7f),        // strong diffuse
-                glm::vec3(0.05f, 0.05f, 0.05f),     // СЛАБЫЙ specular (матовый!)
-                8.0f};                               // низкий shininess
+        // Сделаем пол более приглушённым: уменьшим ambient и diffuse
+        return {glm::vec3(0.15f, 0.15f, 0.15f),      // ниже ambient
+            glm::vec3(0.45f, 0.45f, 0.45f),      // умеренный diffuse
+            glm::vec3(0.02f, 0.02f, 0.02f),     // очень слабый specular (матовый)
+            8.0f};                               // низкий shininess
     }
 
     // НОВЫЙ: Материал для стен (матовый камень)
     static Material Wall() {
-        return {glm::vec3(0.2f, 0.2f, 0.2f),        // ambient
-                glm::vec3(0.4f, 0.4f, 0.4f),        // diffuse
-                glm::vec3(0.02f, 0.02f, 0.02f),     // ОЧЕНЬ СЛАБЫЙ specular
-                4.0f};                               // низкий shininess
+        // Немного усилим ambient/diffuse, чтобы стены выглядели ровнее при рассеянном освещении
+        return {glm::vec3(0.25f, 0.25f, 0.25f),      // чуть выше ambient
+            glm::vec3(0.5f, 0.5f, 0.5f),         // более заметный diffuse
+            glm::vec3(0.02f, 0.02f, 0.02f),     // очень слабый specular
+            4.0f};                               // низкий shininess
     }
 
     // НОВЫЙ: Материал для потолка (светлый, матовый)
