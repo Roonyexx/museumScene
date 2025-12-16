@@ -225,6 +225,16 @@ private:
             shader.setVec3("matSpecular", materials[i].specular);
             shader.setFloat("matShininess", materials[i].shininess);
             shader.setVec3("objectColor", colors[i]);
+            if (meshes[i]->texture != nullptr) {
+                glActiveTexture(GL_TEXTURE2); 
+                meshes[i]->texture->Bind();
+                shader.setInt("diffuseTexture", 2);
+                shader.setBool("useTexture", true);
+            } 
+            else {
+                shader.setBool("useTexture", false);
+            }
+
             meshes[i]->draw();
         }
     }

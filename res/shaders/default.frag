@@ -35,6 +35,10 @@ uniform vec3 matSpecular;
 uniform float matShininess;
 uniform vec3 camPos;
 
+// Текстуры
+uniform sampler2D diffuseTexture;
+uniform bool useTexture;
+
 // === ФУНКЦИИ ===
 
 // PCF для мягких теней (направленный свет)
@@ -51,18 +55,19 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
     float currentDepth = projCoords.z;
     
     // Динамический bias
-    float bias = max(0.005 * (1.0 - dot(normal, lightDir)), 0.001);
+    float bias = max(0.003 * (1.0 - dot(normal, lightDir)), 0.0008);
     
-    // PCF 3x3
+    // PCF 5x5 для более мягких теней
     float shadow = 0.0;
     vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
-    for (int x = -1; x <= 1; ++x) {
-        for (int y = -1; y <= 1; ++y) {
+    
+    for (int x = -2; x <= 2; ++x) {
+        for (int y = -2; y <= 2; ++y) {
             float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
             shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
         }
     }
-    shadow /= 9.0;
+    shadow /= 25.0; // 5x5 = 25 samples
     
     return shadow;
 }
@@ -76,9 +81,9 @@ float PointShadowCalculation(vec3 fragPos, vec3 lightPos, vec3 normal) {
     vec3 lightDir = normalize(lightPos - fragPos);
     
     // Адаптивный bias в зависимости от угла
-    float bias = max(0.15 * (1.0 - dot(normal, lightDir)), 0.05);
+    float bias = max(0.1 * (1.0 - dot(normal, lightDir)), 0.03);
     
-    // Простое сэмплирование с небольшим PCF для сглаживания
+    // Простое сэмплирование с PCF для сглаживания
     float shadow = 0.0;
     vec3 sampleOffsetDirections[20] = vec3[](
         vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
@@ -88,7 +93,7 @@ float PointShadowCalculation(vec3 fragPos, vec3 lightPos, vec3 normal) {
         vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
     );
     
-    float diskRadius = (1.0 + (currentDepth / far_plane)) / 50.0;
+    float diskRadius = (1.0 + (currentDepth / far_plane)) / 100.0;
     
     for(int i = 0; i < 20; ++i) {
         float closestDepth = texture(pointShadowMap, fragToLight + sampleOffsetDirections[i] * diskRadius).r;
@@ -102,12 +107,12 @@ float PointShadowCalculation(vec3 fragPos, vec3 lightPos, vec3 normal) {
 }
 
 // Расчет точечного света
-vec3 CalculatePointLight(Light light, vec3 norm, vec3 viewDir, vec3 fragColor) {
+vec3 CalculatePointLight(Light light, vec3 norm, vec3 viewDir, vec3 baseColor) {
     vec3 lightDir = normalize(light.position - FragPos);
     
     // Diffuse
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * light.color * matDiffuse * fragColor;
+    vec3 diffuse = diff * light.color * matDiffuse * baseColor;
     
     // Specular
     vec3 reflectDir = reflect(-lightDir, norm);
@@ -126,7 +131,7 @@ vec3 CalculatePointLight(Light light, vec3 norm, vec3 viewDir, vec3 fragColor) {
 }
 
 // Расчет направленного света
-vec3 CalculateDirectionalLight(Light light, vec3 norm, vec3 viewDir, vec3 fragColor) {
+vec3 CalculateDirectionalLight(Light light, vec3 norm, vec3 viewDir, vec3 baseColor) {
     vec3 lightDir = normalize(-light.direction);
     
     // Тени
@@ -135,7 +140,7 @@ vec3 CalculateDirectionalLight(Light light, vec3 norm, vec3 viewDir, vec3 fragCo
     
     // Diffuse
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * light.color * matDiffuse * fragColor;
+    vec3 diffuse = diff * light.color * matDiffuse * baseColor;
     
     // Specular
     vec3 reflectDir = reflect(-lightDir, norm);
@@ -146,12 +151,12 @@ vec3 CalculateDirectionalLight(Light light, vec3 norm, vec3 viewDir, vec3 fragCo
 }
 
 // Расчет спот-лайта
-vec3 CalculateSpotLight(Light light, vec3 norm, vec3 viewDir, vec3 fragColor) {
+vec3 CalculateSpotLight(Light light, vec3 norm, vec3 viewDir, vec3 baseColor) {
     vec3 lightDir = normalize(light.position - FragPos);
     
     // Diffuse
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * light.color * matDiffuse * fragColor;
+    vec3 diffuse = diff * light.color * matDiffuse * baseColor;
     
     // Specular
     vec3 reflectDir = reflect(-lightDir, norm);
@@ -175,22 +180,29 @@ void main() {
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(camPos - FragPos);
     
+    // Получаем базовый цвет из текстуры или uniform
+    vec3 baseColor = objectColor;
+    if (useTexture) {
+        vec4 texColor = texture(diffuseTexture, TexCoords);
+        baseColor = texColor.rgb;
+    }
+    
     // Базовый ambient
-    vec3 result = matAmbient * objectColor * 0.3;
+    vec3 result = matAmbient * baseColor * 0.3;
     
     // Суммируем все источники света
     for (int i = 0; i < numLights && i < MAX_LIGHTS; ++i) {
         if (lights[i].type == 1) {
             // Направленный свет
-            result += CalculateDirectionalLight(lights[i], norm, viewDir, objectColor);
+            result += CalculateDirectionalLight(lights[i], norm, viewDir, baseColor);
         }
         else if (lights[i].type == 0) {
             // Точечный свет
-            result += CalculatePointLight(lights[i], norm, viewDir, objectColor);
+            result += CalculatePointLight(lights[i], norm, viewDir, baseColor);
         }
         else if (lights[i].type == 2) {
             // Спот-лайт
-            result += CalculateSpotLight(lights[i], norm, viewDir, objectColor);
+            result += CalculateSpotLight(lights[i], norm, viewDir, baseColor);
         }
     }
     

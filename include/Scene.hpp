@@ -44,22 +44,37 @@ public:
     static Scene CreateMuseumRoom() {
         Scene scene;
 
+        Texture* floorTexture = new Texture("res/textures/floor.jpg", 
+                                            GL_TEXTURE_2D, 
+                                            GL_TEXTURE2, 
+                                            GL_RGB, 
+                                            GL_UNSIGNED_BYTE);
+
+        Texture* wallTexture = new Texture("res/textures/wall.jpg", 
+                                            GL_TEXTURE_2D, 
+                                            GL_TEXTURE2, 
+                                            GL_RGB, 
+                                            GL_UNSIGNED_BYTE);
+
         // === СТЕНЫ И ПОЛ ===
         
         // Пол (МАТЕРИАЛ Floor - матовый)
         Mesh floor = Mesh::CreatePlane(40.0f, 20.0f, Material::Floor());
         // Потолок и стены относительно светлее; пол сделаем темнее, чтобы не быть переэкспонированным
+        floor.addTexture(floorTexture);
         scene.addMesh(floor, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -5.0f, 0.0f)),
                  Material::Floor(), glm::vec3(0.5f, 0.5f, 0.5f));
 
         // Потолок (МАТЕРИАЛ Ceiling - светлый, матовый)
         Mesh ceiling = Mesh::CreatePlane(40.0f, 20.0f, Material::Ceiling());
+        ceiling.addTexture(floorTexture);
         scene.addMesh(ceiling, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 15.0f, 0.0f)),
                      Material::Ceiling(), glm::vec3(0.9f, 0.9f, 0.9f));
 
         // Передняя стена (МАТЕРИАЛ Wall - матовый камень)
         // ИСПРАВЛЕНО: Правильная ориентация нормали (смотрит внутрь помещения)
         Mesh frontWall = Mesh::CreatePlane(40.0f, 20.0f, Material::Wall());
+        frontWall.addTexture(wallTexture);
         scene.addMesh(frontWall, 
                      glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, -10.0f)) * 
                      glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
@@ -69,6 +84,7 @@ public:
         // Задняя стена (МАТЕРИАЛ Wall - матовый камень)
         // ИСПРАВЛЕНО: Правильная ориентация нормали
         Mesh backWall = Mesh::CreatePlane(40.0f, 20.0f, Material::Wall());
+        backWall.addTexture(wallTexture);
         // Повернём заднюю стену так, чтобы её нормаль смотрела внутрь комнаты (-Z)
         scene.addMesh(backWall,
              glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 10.0f)) *
@@ -78,6 +94,7 @@ public:
         // Левая стена (МАТЕРИАЛ Wall - матовый камень)
         // ИСПРАВЛЕНО: Правильная ориентация нормали
         Mesh leftWall = Mesh::CreatePlane(20.0f, 20.0f, Material::Wall());
+        leftWall.addTexture(wallTexture);
         scene.addMesh(leftWall, 
                      glm::translate(glm::mat4(1.0f), glm::vec3(-20.0f, 5.0f, 0.0f)) * 
                      glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
@@ -87,12 +104,12 @@ public:
         // Правая стена (МАТЕРИАЛ Wall - матовый камень)
         // ИСПРАВЛЕНО: Правильная ориентация нормали
         Mesh rightWall = Mesh::CreatePlane(20.0f, 20.0f, Material::Wall());
+        rightWall.addTexture(wallTexture);
         scene.addMesh(rightWall, 
                      glm::translate(glm::mat4(1.0f), glm::vec3(20.0f, 5.0f, 0.0f)) * 
                      glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
                      Material::Wall(), glm::vec3(0.75f, 0.75f, 0.75f));
 
-        // === СВЕТЯЩИЕСЯ ПАНЕЛИ (3 штуки на потолке) ===
         
         // Центральная светящаяся панель (единственный видимый источник)
         Mesh lightPanel2 = Mesh::CreatePlane(3.0f, 3.0f, Material::MetalGold());
@@ -105,8 +122,8 @@ public:
         // Подиум 1
         Mesh podium1 = Mesh::CreateCube();
         scene.addMesh(podium1, 
-                     glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, -3.0f, -3.0f)) *
-                     glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 0.5f, 1.0f)),
+                     glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, -4.2f, -3.0f)) *
+                     glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f)),
                      Material::Stone(), glm::vec3(0.5f, 0.5f, 0.5f));
 
         // Золотая сфера на подиуме 1

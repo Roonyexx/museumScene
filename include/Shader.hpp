@@ -133,6 +133,11 @@ public:
         GLint loc = glGetUniformLocation(ID, name.c_str());
         glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(mat));
     }
+    
+    void setBool(const std::string& name, bool value) const {
+        GLint loc = glGetUniformLocation(ID, name.c_str());
+        glUniform1i(loc, static_cast<int>(value));
+    }
 
     GLuint getID() const {
         return ID;

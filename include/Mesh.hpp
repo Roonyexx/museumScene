@@ -8,6 +8,7 @@
 #include "VBO.hpp"
 #include "EBO.hpp"
 #include "Material.hpp"
+#include "Texture.hpp"
 
 class Mesh {
 public:
@@ -18,11 +19,16 @@ public:
     GLuint VAO_id;
     GLuint VBO_id;
     GLuint EBO_id;
+    Texture* texture = nullptr;
 
     Mesh(const std::vector<Vertex>& verts, const std::vector<uint32_t>& inds, 
-         const Material& mat = Material::PlasticWhite())
-        : vertices(verts), indices(inds), material(mat) {
+         const Material& mat = Material::PlasticWhite(), Texture* tex = nullptr)
+        : vertices(verts), indices(inds), material(mat), texture(tex) {
         setupMesh();
+    }
+
+    void addTexture(Texture* tex) {
+        texture = tex;
     }
 
     void setupMesh() {
