@@ -59,54 +59,54 @@ public:
         // === СТЕНЫ И ПОЛ ===
         
         // Пол (МАТЕРИАЛ Floor - матовый)
-        Mesh floor = Mesh::CreatePlane(40.0f, 20.0f, Material::Floor());
+        Mesh floor = Mesh::CreatePlane(60.0f, 30.0f, Material::Floor());
         // Потолок и стены относительно светлее; пол сделаем темнее, чтобы не быть переэкспонированным
         floor.addTexture(floorTexture);
         scene.addMesh(floor, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -5.0f, 0.0f)),
                  Material::Floor(), glm::vec3(0.5f, 0.5f, 0.5f));
 
         // Потолок (МАТЕРИАЛ Ceiling - светлый, матовый)
-        Mesh ceiling = Mesh::CreatePlane(40.0f, 20.0f, Material::Ceiling());
+        Mesh ceiling = Mesh::CreatePlane(60.0f, 30.0f, Material::Ceiling());
         ceiling.addTexture(floorTexture);
         scene.addMesh(ceiling, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 15.0f, 0.0f)),
                      Material::Ceiling(), glm::vec3(0.9f, 0.9f, 0.9f));
 
         // Передняя стена (МАТЕРИАЛ Wall - матовый камень)
         // ИСПРАВЛЕНО: Правильная ориентация нормали (смотрит внутрь помещения)
-        Mesh frontWall = Mesh::CreatePlane(40.0f, 20.0f, Material::Wall());
+        Mesh frontWall = Mesh::CreatePlane(60.0f, 20.0f, Material::Wall());
         frontWall.addTexture(wallTexture);
         scene.addMesh(frontWall, 
-                     glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, -10.0f)) * 
+                     glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, -15.0f)) * 
                      glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
                      glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
                      Material::Wall(), glm::vec3(0.75f, 0.75f, 0.75f));
 
         // Задняя стена (МАТЕРИАЛ Wall - матовый камень)
         // ИСПРАВЛЕНО: Правильная ориентация нормали
-        Mesh backWall = Mesh::CreatePlane(40.0f, 20.0f, Material::Wall());
+        Mesh backWall = Mesh::CreatePlane(60.0f, 20.0f, Material::Wall());
         backWall.addTexture(wallTexture);
         // Повернём заднюю стену так, чтобы её нормаль смотрела внутрь комнаты (-Z)
         scene.addMesh(backWall,
-             glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 10.0f)) *
+             glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 15.0f)) *
              glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
              Material::Wall(), glm::vec3(0.75f, 0.75f, 0.75f));
 
         // Левая стена (МАТЕРИАЛ Wall - матовый камень)
         // ИСПРАВЛЕНО: Правильная ориентация нормали
-        Mesh leftWall = Mesh::CreatePlane(20.0f, 20.0f, Material::Wall());
+        Mesh leftWall = Mesh::CreatePlane(20.0f, 30.0f, Material::Wall());
         leftWall.addTexture(wallTexture);
         scene.addMesh(leftWall, 
-                     glm::translate(glm::mat4(1.0f), glm::vec3(-20.0f, 5.0f, 0.0f)) * 
+                     glm::translate(glm::mat4(1.0f), glm::vec3(-30.0f, 5.0f, 0.0f)) * 
                      glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
                      glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
                      Material::Wall(), glm::vec3(0.75f, 0.75f, 0.75f));
 
         // Правая стена (МАТЕРИАЛ Wall - матовый камень)
         // ИСПРАВЛЕНО: Правильная ориентация нормали
-        Mesh rightWall = Mesh::CreatePlane(20.0f, 20.0f, Material::Wall());
+        Mesh rightWall = Mesh::CreatePlane(20.0f, 30.0f, Material::Wall());
         rightWall.addTexture(wallTexture);
         scene.addMesh(rightWall, 
-                     glm::translate(glm::mat4(1.0f), glm::vec3(20.0f, 5.0f, 0.0f)) * 
+                     glm::translate(glm::mat4(1.0f), glm::vec3(30.0f, 5.0f, 0.0f)) * 
                      glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
                      Material::Wall(), glm::vec3(0.75f, 0.75f, 0.75f));
 
@@ -164,6 +164,9 @@ public:
         // Источник света — точечный в центре потолка (визуально соответствует панели)
         // Интенсивность и радиус заданы так, чтобы хорошо освещать помещение
         scene.addLight(Light(glm::vec3(0.0f, 14.0f, 0.0f),
+                      glm::vec3(1.0f, 0.98f, 0.9f), 8.0f, 40.0f));
+
+        scene.addLight(Light(glm::vec3(-5.0f, 14.0f, 0.0f),
                       glm::vec3(1.0f, 0.98f, 0.9f), 8.0f, 40.0f));
 
         return scene;
