@@ -31,7 +31,7 @@ int main() {
     glfwWindowHint(GLFW_SAMPLES, 4);
 
     GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT,
-                                          "Museum Room - Shadow Mapping", nullptr, nullptr);
+                                          "пупупу", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window\n";
         glfwTerminate();
@@ -52,9 +52,6 @@ int main() {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_MULTISAMPLE);
     glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
-
-    std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
-    std::cout << "GLSL Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
     
     Shader shader("res/shaders/default.vert", "res/shaders/default.frag");
@@ -95,12 +92,6 @@ int main() {
         double deltaTime = currentTime - lastTime;
         lastTime = currentTime;
         frameCount++;
-
-        if (frameCount % 60 == 0) {
-            double fps = 1.0 / deltaTime;
-            std::string title = "Museum Room - FPS: " + std::to_string(static_cast<int>(fps));
-            glfwSetWindowTitle(window, title.c_str());
-        }
 
         
         camera.handleInput(window, static_cast<float>(deltaTime));

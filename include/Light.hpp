@@ -40,21 +40,6 @@ struct Light {
     }
 
     
-    static Light CreateSpotlight(const glm::vec3& pos, const glm::vec3& dir, 
-                                 const glm::vec3& col, float intens, float cutoff, float outerCutoff) {
-        Light light;
-        light.type = LightType::SPOTLIGHT;
-        light.position = pos;
-        light.direction = glm::normalize(dir);
-        light.color = col;
-        light.intensity = intens;
-        light.range = 100.0f;
-        light.cutOff = glm::cos(glm::radians(cutoff));
-        light.outerCutOff = glm::cos(glm::radians(outerCutoff));
-        return light;
-    }
-
-    
 private:
     Light() = default;
 };

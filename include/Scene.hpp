@@ -160,6 +160,14 @@ public:
                              glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f,1.0f,0.0f)),
 
                              Material::Stone(), glm::vec3(0.8f,0.8f,0.8f));
+
+        Mesh lamp = ModelLoader::loadOBJ("res/models/lamp.obj", 
+                                        Material::Marble());
+
+        scene.addMesh(lamp, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f,15.0f, 0.0f)) *
+                             glm::scale(glm::mat4(1.0f), glm::vec3(0.008f)) *
+                             glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f,0.0f,1.0f)),
+                             Material::Marble(), glm::vec3(0.8f,0.8f,0.8f));
                 
 
         
@@ -350,7 +358,7 @@ public:
         );
 
         Mesh pictureRight = *frameRight.picturePlane;
-        pictureRight.addTexture(new Texture("res/textures/sadcat.jpg",
+        pictureRight.addTexture(new Texture("res/textures/bog.png",
                                             GL_TEXTURE_2D, GL_TEXTURE2,
                                             GL_RGBA, GL_UNSIGNED_BYTE));
 
@@ -449,10 +457,10 @@ public:
 
         
         
-        Mesh lightPanel2 = Mesh::CreatePlane(3.0f, 3.0f, Material::MetalGold());
-        scene.addMesh(lightPanel2,
-                 glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 14.5f, 0.0f)),
-                 Material::MetalGold(), glm::vec3(1.0f, 1.0f, 0.9f));
+        // Mesh lightPanel2 = Mesh::CreatePlane(3.0f, 3.0f, Material::MetalGold());
+        // scene.addMesh(lightPanel2,
+        //          glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 14.5f, 0.0f)),
+        //          Material::MetalGold(), glm::vec3(1.0f, 1.0f, 0.9f));
         
         scene.addLight(Light(glm::vec3(0.0f, 14.0f, 0.0f),
                       glm::vec3(1.0f, 0.98f, 0.9f), 8.0f, 40.0f));
