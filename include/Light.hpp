@@ -4,42 +4,71 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 enum class LightType {
-    POINT,        
-    DIRECTIONAL,  
-    SPOTLIGHT     
+    POINT,
+    DIRECTIONAL,
+    SPOTLIGHT
 };
 
 struct Light {
     LightType type;
-    glm::vec3 position;      
-    glm::vec3 direction;     
-    glm::vec3 color;         
-    float intensity;         
-    float range;             
-    float cutOff;            
-    float outerCutOff;       
+    glm::vec3 position;
+    glm::vec3 direction;
+    glm::vec3 color;
+    float intensity;
+    float range;
+    float cutOff;       // degrees (inner)
+    float outerCutOff;  // degrees (outer)
 
-    
-    Light(const glm::vec3& pos, const glm::vec3& col, float intens = 1.0f, float r = 100.0f)
-        : type(LightType::POINT), position(pos), color(col), intensity(intens), range(r),
-          direction(glm::vec3(0.0f)), cutOff(0.0f), outerCutOff(0.0f) {}
+    // Point light constructor
+    Light(const glm::vec3& pos,
+          const glm::vec3& col,
+          float intens = 1.0f,
+          float r = 100.0f)
+        : type(LightType::POINT),
+          position(pos),
+          direction(glm::vec3(0.0f)),
+          color(col),
+          intensity(intens),
+          range(r),
+          cutOff(0.0f),
+          outerCutOff(0.0f)
+    {}
 
-    
-    
-    static Light CreateDirectional(const glm::vec3& col, const glm::vec3& dir, float intens = 1.0f) {
-        Light light;
-        light.type = LightType::DIRECTIONAL;
-        light.color = col;
-        light.direction = glm::normalize(dir);
-        light.intensity = intens;
-        light.position = glm::vec3(0.0f);
-        light.range = 0.0f;
-        light.cutOff = 0.0f;
-        light.outerCutOff = 0.0f;
-        return light;
-    }
+    // Directional light constructor
+    // Pass `dir` as light direction (world space)
+    Light(const glm::vec3& dir,
+          const glm::vec3& col,
+          float intens,
+          bool /*directional_marker*/)
+        : type(LightType::DIRECTIONAL),
+          position(glm::vec3(0.0f)),
+          direction(glm::normalize(dir)),
+          color(col),
+          intensity(intens),
+          range(0.0f),
+          cutOff(0.0f),
+          outerCutOff(0.0f)
+    {}
 
-    
+    // Spotlight constructor
+    // cutOff / outerCutOff - in degrees (inner, outer). direction expected in world space.
+    Light(const glm::vec3& pos,
+          const glm::vec3& dir,
+          const glm::vec3& col,
+          float intens = 1.0f,
+          float r = 100.0f,
+          float cut = 30.0f,
+          float outerCut = 40.0f)
+        : type(LightType::SPOTLIGHT),
+          position(pos),
+          direction(glm::normalize(dir)),
+          color(col),
+          intensity(intens),
+          range(r),
+          cutOff(cut),
+          outerCutOff(outerCut)
+    {}
+
 private:
     Light() = default;
 };

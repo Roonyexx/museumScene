@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <array>
+#include <iostream>
 #include "Mesh.hpp"
 #include "Material.hpp"
 #include "Light.hpp"
@@ -21,8 +22,7 @@ private:
     Shader* shadowShader;
     ShadowMap* shadowMap;
     Shader* pointShadowShader = nullptr;
-    
-    
+
     static const int MAX_POINT_SHADOWS = 5;
     std::array<ShadowCube*, MAX_POINT_SHADOWS> shadowCubes;
     int numActiveShadowCubes = 0;
@@ -34,7 +34,6 @@ public:
     Renderer(Shader& s)
         : shader(s), shadowShader(nullptr), shadowMap(nullptr),
           screenWidth(1920), screenHeight(1080) {
-        
         shadowCubes.fill(nullptr);
     }
 
@@ -61,17 +60,14 @@ public:
 
     void initPointShadow(Shader& pointS, int size = 1024, float far_plane = 50.0f) {
         pointShadowShader = &pointS;
-        
-        
         for (int i = 0; i < MAX_POINT_SHADOWS; ++i) {
             if (shadowCubes[i] != nullptr) {
                 delete shadowCubes[i];
             }
             shadowCubes[i] = new ShadowCube(size, far_plane);
         }
-        
-        std::cout << "Initialized " << MAX_POINT_SHADOWS 
-                  << " point shadow cubemaps (" << size << "x" << size 
+        std::cout << "Initialized " << MAX_POINT_SHADOWS
+                  << " point shadow cubemaps (" << size << "x" << size
                   << ", far plane: " << far_plane << ")\n";
     }
 
@@ -110,7 +106,7 @@ public:
 
 private:
     void renderShadowMaps() {
-        
+        // Directional shadow map (single orthographic) - unchanged logic
         shadowShader->activate();
         shadowMap->bindForRendering();
         glEnable(GL_CULL_FACE);
@@ -147,24 +143,22 @@ private:
         shadowMap->unbindForRendering();
         glViewport(0, 0, screenWidth, screenHeight);
 
-        
+        // Point/Spot shadows: collect *local* lights (POINT + SPOTLIGHT)
         if (pointShadowShader != nullptr && shadowCubes[0] != nullptr) {
-            
-            std::vector<glm::vec3> pointLightPositions;
+            std::vector<glm::vec3> localLightPositions;
             for (const auto& l : lights) {
-                if (l.type == LightType::POINT) {
-                    pointLightPositions.push_back(l.position);
-                    if (pointLightPositions.size() >= MAX_POINT_SHADOWS) {
-                        break; 
+                if (l.type == LightType::POINT || l.type == LightType::SPOTLIGHT) {
+                    localLightPositions.push_back(l.position);
+                    if (localLightPositions.size() >= MAX_POINT_SHADOWS) {
+                        break;
                     }
                 }
             }
 
-            numActiveShadowCubes = pointLightPositions.size();
+            numActiveShadowCubes = static_cast<int>(localLightPositions.size());
 
-            
-            for (size_t lightIdx = 0; lightIdx < pointLightPositions.size(); ++lightIdx) {
-                glm::vec3 lightPos = pointLightPositions[lightIdx];
+            for (size_t lightIdx = 0; lightIdx < localLightPositions.size(); ++lightIdx) {
+                glm::vec3 lightPos = localLightPositions[lightIdx];
                 ShadowCube* cube = shadowCubes[lightIdx];
 
                 pointShadowShader->activate();
@@ -176,7 +170,6 @@ private:
                 float far_plane = cube->getFarPlane();
                 glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), 1.0f, near, far_plane);
 
-                
                 std::vector<glm::mat4> shadowTransforms;
                 shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3( 1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
                 shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
@@ -185,7 +178,6 @@ private:
                 shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3( 0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
                 shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3( 0.0, 0.0,-1.0), glm::vec3(0.0, -1.0, 0.0)));
 
-                
                 for (unsigned int faceIdx = 0; faceIdx < 6; ++faceIdx) {
                     cube->attachFace(faceIdx);
                     glClear(GL_DEPTH_BUFFER_BIT);
@@ -212,7 +204,7 @@ private:
     void renderWithShadows() {
         shader.activate();
 
-        
+        // Directional preparations (unchanged)
         glm::vec3 lightDir = glm::vec3(0.3f, -1.0f, 0.3f);
         for (const auto& light : lights) {
             if (light.type == LightType::DIRECTIONAL) {
@@ -233,24 +225,24 @@ private:
 
         shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 
-        
+        // bind directional shadow map
         glActiveTexture(GL_TEXTURE0);
         shadowMap->bindTexture(0);
         shader.setInt("shadowMap", 0);
 
-        
+        // bind point/spot cubemaps
         for (int i = 0; i < numActiveShadowCubes && i < MAX_POINT_SHADOWS; ++i) {
             glActiveTexture(GL_TEXTURE1 + i);
             shadowCubes[i]->bindTexture(1 + i);
-            
+
             std::string uniformName = "pointShadowMaps[" + std::to_string(i) + "]";
             shader.setInt(uniformName, 1 + i);
         }
-        
+
         shader.setInt("numPointShadows", numActiveShadowCubes);
         shader.setFloat("far_plane", shadowCubes[0] != nullptr ? shadowCubes[0]->getFarPlane() : 50.0f);
 
-        
+        // pass lights data to shader (uniforms)
         shader.setInt("numLights", static_cast<int>(lights.size()));
         for (size_t i = 0; i < lights.size() && i < 8; ++i) {
             std::string prefix = "lights[" + std::to_string(i) + "]";
@@ -260,11 +252,13 @@ private:
             shader.setVec3(prefix + ".color", lights[i].color);
             shader.setFloat(prefix + ".intensity", lights[i].intensity);
             shader.setFloat(prefix + ".range", lights[i].range);
+
+            // store angles in degrees in Light, shader expects cos(radians(...))
             shader.setFloat(prefix + ".cutOff", glm::cos(glm::radians(lights[i].cutOff)));
             shader.setFloat(prefix + ".outerCutOff", glm::cos(glm::radians(lights[i].outerCutOff)));
         }
 
-        
+        // render scene objects using shader
         for (size_t i = 0; i < meshes.size(); ++i) {
             shader.setMat4("model", transforms[i]);
             shader.setVec3("matAmbient", materials[i].ambient);
@@ -274,7 +268,7 @@ private:
             shader.setVec3("objectColor", colors[i]);
 
             if (meshes[i]->texture != nullptr) {
-                glActiveTexture(GL_TEXTURE6); 
+                glActiveTexture(GL_TEXTURE6);
                 meshes[i]->texture->Bind();
                 shader.setInt("diffuseTexture", 6);
                 shader.setBool("useTexture", true);
@@ -289,7 +283,7 @@ private:
     void renderDirect() {
         shader.activate();
         shader.setInt("numLights", static_cast<int>(lights.size()));
-        
+
         for (size_t i = 0; i < lights.size() && i < 8; ++i) {
             std::string prefix = "lights[" + std::to_string(i) + "]";
             shader.setInt(prefix + ".type", static_cast<int>(lights[i].type));
