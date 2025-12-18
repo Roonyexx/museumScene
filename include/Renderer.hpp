@@ -106,7 +106,6 @@ public:
 
 private:
     void renderShadowMaps() {
-        // Directional shadow map (single orthographic) - unchanged logic
         shadowShader->activate();
         shadowMap->bindForRendering();
         glEnable(GL_CULL_FACE);
@@ -143,7 +142,6 @@ private:
         shadowMap->unbindForRendering();
         glViewport(0, 0, screenWidth, screenHeight);
 
-        // Point/Spot shadows: collect *local* lights (POINT + SPOTLIGHT)
         if (pointShadowShader != nullptr && shadowCubes[0] != nullptr) {
             std::vector<glm::vec3> localLightPositions;
             for (const auto& l : lights) {
@@ -204,7 +202,6 @@ private:
     void renderWithShadows() {
         shader.activate();
 
-        // Directional preparations (unchanged)
         glm::vec3 lightDir = glm::vec3(0.3f, -1.0f, 0.3f);
         for (const auto& light : lights) {
             if (light.type == LightType::DIRECTIONAL) {
@@ -225,12 +222,10 @@ private:
 
         shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 
-        // bind directional shadow map
         glActiveTexture(GL_TEXTURE0);
         shadowMap->bindTexture(0);
         shader.setInt("shadowMap", 0);
 
-        // bind point/spot cubemaps
         for (int i = 0; i < numActiveShadowCubes && i < MAX_POINT_SHADOWS; ++i) {
             glActiveTexture(GL_TEXTURE1 + i);
             shadowCubes[i]->bindTexture(1 + i);
@@ -242,7 +237,6 @@ private:
         shader.setInt("numPointShadows", numActiveShadowCubes);
         shader.setFloat("far_plane", shadowCubes[0] != nullptr ? shadowCubes[0]->getFarPlane() : 50.0f);
 
-        // pass lights data to shader (uniforms)
         shader.setInt("numLights", static_cast<int>(lights.size()));
         for (size_t i = 0; i < lights.size() && i < 8; ++i) {
             std::string prefix = "lights[" + std::to_string(i) + "]";
@@ -253,12 +247,10 @@ private:
             shader.setFloat(prefix + ".intensity", lights[i].intensity);
             shader.setFloat(prefix + ".range", lights[i].range);
 
-            // store angles in degrees in Light, shader expects cos(radians(...))
             shader.setFloat(prefix + ".cutOff", glm::cos(glm::radians(lights[i].cutOff)));
             shader.setFloat(prefix + ".outerCutOff", glm::cos(glm::radians(lights[i].outerCutOff)));
         }
 
-        // render scene objects using shader
         for (size_t i = 0; i < meshes.size(); ++i) {
             shader.setMat4("model", transforms[i]);
             shader.setVec3("matAmbient", materials[i].ambient);

@@ -39,8 +39,6 @@ public:
         lights.clear();
     }
 
-
-    
     
     void addOBJModelWithTexture(const std::string& objPath,
                                 const std::string& texturePath,
@@ -104,9 +102,9 @@ public:
                                                      Material::Marble());
 
 
-        scene.addMesh(phone, glm::translate(glm::mat4(1.0f), glm::vec3(-23.0f, -4.99f, -8.0f)) *
+        scene.addMesh(phone, glm::translate(glm::mat4(1.0f), glm::vec3(-20.13f, -4.99f, -7.0f)) *
                              glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f,0.0f,0.0f)) *
-                             glm::rotate(glm::mat4(1.0f), glm::radians(145.0f), glm::vec3(0.0f,0.0f,1.0f)) *
+                             glm::rotate(glm::mat4(1.0f), glm::radians(40.0f), glm::vec3(0.0f,0.0f,1.0f)) *
                                  glm::scale(glm::mat4(1.0f), glm::vec3(0.08f)),
                              Material::iPhoneGlass(), glm::vec3(0.5f,0.5f,0.5f));
 
@@ -121,65 +119,63 @@ public:
         glm::vec4 flashWorldPos = phoneTransform * flashLocalPos;
 
         
-        glm::vec3 flashDir = glm::normalize(glm::vec3(0.0f, 0.1f, -1.0f));
-
-        // Inner cut-off slightly less than 180 degrees (very wide cone)
+        glm::vec3 flashDir = glm::normalize(glm::vec3(0.0f, 0.8f, -1.0f));
         float innerAngle = 65.0f;
         float outerAngle = 75.0f;
 
         scene.addLight(Light(
-            glm::vec3(flashWorldPos), // position
-            flashDir,                 // direction (world space)
-            glm::vec3(1.0f, 0.95f, 0.9f), // color
-            1.5f,                     // intensity
-            15.0f,                    // range
-            innerAngle,               // cutOff degrees (inner)
-            outerAngle                // outerCutOff degrees
+            glm::vec3(flashWorldPos),
+            flashDir,               
+            glm::vec3(1.0f, 0.95f, 0.9f), 
+            1.5f,                  
+            15.0f,                
+            innerAngle,               
+            outerAngle               
         ));
 
-        // Mesh olen = ModelLoader::loadOBJ("res/models/olen.obj", 
-        //                                 Material::Marble());
+        Mesh olen = ModelLoader::loadOBJ("res/models/olen.obj", 
+                                        Material::Marble());
 
-        // scene.addMesh(olen, glm::translate(glm::mat4(1.0f), glm::vec3(20.0f, -5.0f, -5.0f)) *
-        //                      glm::scale(glm::mat4(1.0f), glm::vec3(0.06f)) * 
-        //                      glm::rotate(glm::mat4(1.0f), glm::radians(-40.0f), glm::vec3(0.0f,1.0f,0.0f)),
-        //                      Material::Marble(), glm::vec3(0.8f,0.8f,0.8f));
+        scene.addMesh(olen, glm::translate(glm::mat4(1.0f), glm::vec3(20.0f, -5.0f, -5.0f)) *
+                             glm::scale(glm::mat4(1.0f), glm::vec3(0.06f)) * 
+                             glm::rotate(glm::mat4(1.0f), glm::radians(-40.0f), glm::vec3(0.0f,1.0f,0.0f)),
+                             Material::Marble(), glm::vec3(0.8f,0.8f,0.8f));
 
-        // Mesh venus = ModelLoader::loadOBJ("res/models/venus.obj", 
-        //                                 Material::Marble());
+        Mesh venus = ModelLoader::loadOBJ("res/models/venus.obj", 
+                                        Material::Marble());
 
-        // scene.addMesh(venus, glm::translate(glm::mat4(1.0f), glm::vec3(24.f,-5.0f,10.0f)) *
-        //                      glm::scale(glm::mat4(1.0f), glm::vec3(0.08f)) * 
-        //                      glm::rotate(glm::mat4(1.0f), glm::radians(-120.0f), glm::vec3(0.0f,1.0f,0.0f)),
-        //                      Material::Marble(), glm::vec3(0.8f,0.8f,0.8f));
+        scene.addMesh(venus, glm::translate(glm::mat4(1.0f), glm::vec3(24.f,-5.0f,10.0f)) *
+                             glm::scale(glm::mat4(1.0f), glm::vec3(0.08f)) * 
+                             glm::rotate(glm::mat4(1.0f), glm::radians(-120.0f), glm::vec3(0.0f,1.0f,0.0f)),
+                             Material::Marble(), glm::vec3(0.8f,0.8f,0.8f));
 
-        // Mesh cat = ModelLoader::loadOBJ("res/models/cat.obj", 
-        //                                 Material::Marble());
+        Mesh cat = ModelLoader::loadOBJ("res/models/cat.obj", 
+                                        Material::Marble());
 
-        // scene.addMesh(cat, glm::translate(glm::mat4(1.0f), glm::vec3(-11,-5.0f,-7)) *
-        //                      glm::scale(glm::mat4(1.0f), glm::vec3(30.08f)) * 
-        //                      glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f,0.0f,0.0f))*
-        //                      glm::rotate(glm::mat4(1.0f), glm::radians(-30.0f), glm::vec3(0.0f,0.0f,1.0f)),
-        //                      Material::Marble(), glm::vec3(0.8f,0.8f,0.8f));
+        scene.addMesh(cat, glm::translate(glm::mat4(1.0f), glm::vec3(-11,-5.0f,-7)) *
+                             glm::scale(glm::mat4(1.0f), glm::vec3(30.08f)) * 
+                             glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f,0.0f,0.0f))*
+                             glm::rotate(glm::mat4(1.0f), glm::radians(-30.0f), glm::vec3(0.0f,0.0f,1.0f)),
+                             Material::Marble(), glm::vec3(0.8f,0.8f,0.8f));
 
 
-        // Mesh sofa = ModelLoader::loadOBJWithTexture("res/models/sofa.obj", 
-        //                                 "res/textures/sofaTx.jpg",
-        //                                 Material::Marble());
+        Mesh sofa = ModelLoader::loadOBJWithTexture("res/models/sofa.obj", 
+                                        "res/textures/sofaTx.jpg",
+                                        Material::Marble());
 
-        // scene.addMesh(sofa, glm::translate(glm::mat4(1.0f), glm::vec3(0,-5,10)) *
-        //                      glm::scale(glm::mat4(1.0f), glm::vec3(0.008f)) *
-        //                      glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f,1.0f,0.0f)),
+        scene.addMesh(sofa, glm::translate(glm::mat4(1.0f), glm::vec3(0,-5,10)) *
+                             glm::scale(glm::mat4(1.0f), glm::vec3(0.008f)) *
+                             glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f,1.0f,0.0f)),
 
-        //                      Material::Stone(), glm::vec3(0.8f,0.8f,0.8f));
+                             Material::Stone(), glm::vec3(0.8f,0.8f,0.8f));
 
-        // Mesh lamp = ModelLoader::loadOBJ("res/models/lamp.obj", 
-        //                                 Material::Marble());
+        Mesh lamp = ModelLoader::loadOBJ("res/models/lamp.obj", 
+                                        Material::Marble());
 
-        // scene.addMesh(lamp, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f,15.0f, 0.0f)) *
-        //                      glm::scale(glm::mat4(1.0f), glm::vec3(0.008f)) *
-        //                      glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f,0.0f,1.0f)),
-        //                      Material::Marble(), glm::vec3(0.8f,0.8f,0.8f));
+        scene.addMesh(lamp, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f,15.0f, 0.0f)) *
+                             glm::scale(glm::mat4(1.0f), glm::vec3(0.008f)) *
+                             glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f,0.0f,1.0f)),
+                             Material::Marble(), glm::vec3(0.8f,0.8f,0.8f));
                 
 
         

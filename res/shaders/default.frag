@@ -136,7 +136,6 @@ vec3 CalculateDirectionalLight(Light light, vec3 norm, vec3 viewDir, vec3 baseCo
     return (diffuse + specular) * light.intensity * shadowFactor;
 }
 
-// Note: pointShadowIndex should be the index of the cube shadow map corresponding to this local light
 vec3 CalculateSpotLight(
     Light light,
     vec3 norm,
@@ -146,7 +145,6 @@ vec3 CalculateSpotLight(
 ) {
     vec3 L = normalize(light.position - FragPos);
 
-    // --- 1. ЖЁСТКОЕ ОТСЕЧЕНИЕ ПО КОНУСУ ---
     float theta = dot(L, normalize(-light.direction));
 
     if (theta < light.outerCutOff)
@@ -155,7 +153,6 @@ vec3 CalculateSpotLight(
     float epsilon = light.cutOff - light.outerCutOff;
     float coneIntensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
 
-    // --- 2. Освещение ---
     float diff = max(dot(norm, L), 0.0);
     vec3 diffuse = diff * light.color * matDiffuse * baseColor;
 
@@ -163,11 +160,9 @@ vec3 CalculateSpotLight(
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), matShininess);
     vec3 specular = spec * light.color * matSpecular;
 
-    // --- 3. Attenuation ---
     float distance = length(light.position - FragPos);
     float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * distance * distance);
 
-    // --- 4. ТЕНЬ (ТОЛЬКО ВНУТРИ КОНУСА!) ---
     float shadow = 0.0;
     if (pointShadowIndex >= 0)
         shadow = PointShadowCalculation(
@@ -209,8 +204,7 @@ void main() {
             result += CalculatePointLight(lights[i], norm, viewDir, baseColor, pointLightIndex);
             pointLightIndex++;
         }
-        else if (lights[i].type == 2) { // SPOTLIGHT
-            // For spotlights we also map to point-style cube shadows (if available)
+        else if (lights[i].type == 2) {
             result += CalculateSpotLight(lights[i], norm, viewDir, baseColor, pointLightIndex);
             pointLightIndex++;
         }

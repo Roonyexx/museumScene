@@ -16,10 +16,9 @@ struct Light {
     glm::vec3 color;
     float intensity;
     float range;
-    float cutOff;       // degrees (inner)
-    float outerCutOff;  // degrees (outer)
+    float cutOff;      
+    float outerCutOff;  
 
-    // Point light constructor
     Light(const glm::vec3& pos,
           const glm::vec3& col,
           float intens = 1.0f,
@@ -34,12 +33,10 @@ struct Light {
           outerCutOff(0.0f)
     {}
 
-    // Directional light constructor
-    // Pass `dir` as light direction (world space)
     Light(const glm::vec3& dir,
           const glm::vec3& col,
           float intens,
-          bool /*directional_marker*/)
+          bool)
         : type(LightType::DIRECTIONAL),
           position(glm::vec3(0.0f)),
           direction(glm::normalize(dir)),
@@ -49,9 +46,6 @@ struct Light {
           cutOff(0.0f),
           outerCutOff(0.0f)
     {}
-
-    // Spotlight constructor
-    // cutOff / outerCutOff - in degrees (inner, outer). direction expected in world space.
     Light(const glm::vec3& pos,
           const glm::vec3& dir,
           const glm::vec3& col,
